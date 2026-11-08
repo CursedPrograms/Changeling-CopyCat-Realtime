@@ -5,5 +5,4 @@ __pycache__/
 models/*.onnx
 models/*.part
 # the test pictures stay private (personas/input.jpeg is in the repo)
-personas/test.png
-personas/test2.png
+personas/test*
