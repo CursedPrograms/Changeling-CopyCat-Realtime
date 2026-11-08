@@ -4,7 +4,6 @@ __pycache__/
 # the swap model: downloaded by run.bat (550 MB, and not for redistribution)
 models/*.onnx
 models/*.part
-# her pictures: private (placeholder.jpeg is the one in the repo)
+# the test pictures stay private (personas/input.jpeg is in the repo)
 personas/test.png
 personas/test2.png
-personas/input.jpeg
