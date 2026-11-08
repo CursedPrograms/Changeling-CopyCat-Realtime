@@ -70,8 +70,10 @@ class Window:
 
         side = ctk.CTkScrollableFrame(self.root, width=300, corner_radius=12)
         side.grid(row=0, column=1, sticky="ns", padx=(7, 14), pady=14)
-        title = ctk.CTkFont(size=24, weight="bold")
-        ctk.CTkLabel(side, text=NAME, font=title, text_color=PINK).pack(anchor="w", padx=12, pady=(10, 0))
+        ctk.CTkLabel(side, text="CHANGELING", text_color="gray55",
+                     font=ctk.CTkFont(size=11, weight="bold")).pack(anchor="w", padx=12, pady=(10, 0))
+        ctk.CTkLabel(side, text="CopyCat Realtime", font=ctk.CTkFont(size=24, weight="bold"),
+                     text_color=PINK).pack(anchor="w", padx=12)
         ctk.CTkLabel(side, text="your expressions, someone else's face", text_color="gray60").pack(anchor="w", padx=12)
 
         self._section(side, "Persona")
