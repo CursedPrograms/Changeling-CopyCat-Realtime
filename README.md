@@ -1,14 +1,16 @@
 <p align="center"><img src="samples/persona_samples.jpg" alt="Three faces, each as the camera sees it, then swapped to the persona, then the persona picture" width="640"></p>
 
-# Persona Cam
+# Changeling Realtime
 
-**Website:** https://cursedprograms.github.io/Persona-Cam/
+*Formerly Persona Cam. Part of the Changeling family: [Changeling](https://github.com/CursedPrograms/Changeling) swaps faces in photos and videos; Changeling Realtime does it live on the webcam.*
+
+**Website:** https://cursedprograms.github.io/Changeling-Realtime/
 
 A live face swap for video calls. You become the face in `personas/input.jpeg`, with your own expressions
 (your smile, your blinks, your mouth as you talk), and your call (Zoom, Teams, Discord, Meet) sees it as an
 ordinary camera. The personas are **AI-generated people who don't exist**.
 
-Each row above: a face as the camera sees it, the same frame through Persona Cam, and the persona.
+Each row above: a face as the camera sees it, the same frame through Changeling Realtime, and the persona.
 
 ## Use it
 
@@ -20,11 +22,17 @@ Each row above: a face as the camera sees it, the same frame through Persona Cam
    picker in `personas/` to become someone else this time.
 4. In your call, pick the camera **OBS Virtual Camera** (OBS Studio installed; it doesn't have to run).
 
+The window (Changeling's look): the picture on the left; on the right the persona with **Pick persona**
+and **Reload**, switches for the swap, occlusion and the virtual camera, the smooth and strength sliders,
+the voice, and **Record**.
+
 | Key | Does |
 | :--- | :--- |
 | <kbd>S</kbd> | swap on / off |
 | <kbd>O</kbd> | occlusion on / off: hands, hair, a cup in front of your face stay in front of hers |
 | <kbd>V</kbd> | virtual camera on / off |
+| <kbd>A</kbd> | voice: off, female, male |
+| <kbd>C</kbd> | record / stop: the swapped picture and your voice, to `recordings/` |
 | <kbd>P</kbd> | pick another persona: a file picker in `personas/`, no restart |
 | <kbd>R</kbd> | read the persona's picture again (after replacing it) |
 | <kbd>Q</kbd> or <kbd>Esc</kbd> | quit |
@@ -34,8 +42,24 @@ Each row above: a face as the camera sees it, the same frame through Persona Cam
 | smooth % | steadies where the face sits from frame to frame (less jitter; too much and it lags) |
 | strength % | how much of the swapped face shows: 100 is all of it |
 
+### The voice
+
+**Female** takes your voice to a woman's pitch (about 210 Hz), the formants (the resonance that sounds man
+or woman) up with it; **male** to a man's (about 115 Hz). Your own pitch is learned as you talk, so a deep
+voice and a light one both land in the right range. It's a phase vocoder on the CPU, about a tenth of a
+second behind. To reach your call it needs [VB-Audio Virtual Cable](https://vb-audio.com/Cable/) (pick
+**CABLE Output** as the call's microphone); without it the voice still goes into recordings.
+
+### Recording
+
+**Record** saves what the call would see and hear: the swapped picture and your voice (changed, or your
+own with the voice off) as one `.mp4` in `recordings/`, named by date and time. The picture is written at a
+steady 30 fps in step with the sound; ffmpeg joins them at Stop. Click the line under the button to open
+the folder.
+
 `run.bat --camera 1` (another webcam), `run.bat --source clip.mp4` (a video or picture instead of the
-webcam), `run.bat --no-virtual` (just the preview), `run.bat --persona test2` (skip the question: a picture in `personas/` by name, or any file), `run.bat --source me.jpg --snapshot out.png` (one
+webcam), `run.bat --no-virtual` (just the preview), `run.bat --voice female` (start with a voice),
+`run.bat --mic "Focusrite"` (pick the microphone by part of its name), `run.bat --persona test2` (skip the question: a picture in `personas/` by name, or any file), `run.bat --source me.jpg --snapshot out.png` (one
 swapped frame, to try a persona).
 
 ## The personas
@@ -50,7 +74,7 @@ real person on a call isn't fair on them. What works best:
 ## What it swaps, and what it doesn't
 
 - The face: the persona's features and skin, your expressions and head movements.
-- Not your hair, neck, body or voice: a hood or a wig helps a lot. A voice changer would be its own step.
+- Not your hair, neck or body: a hood or a wig helps a lot. The voice is its own switch (above).
 - Best facing the camera: sharp side profiles and hands over the face make it slip for a moment.
 
 ## How it works

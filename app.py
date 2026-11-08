@@ -1,4 +1,4 @@
-"""app.py - Persona Cam: a live face swap for video calls. You become the face in personas/input.jpeg,
+"""app.py - Changeling Realtime: a live face swap for video calls. You become the face in personas/input.jpeg,
 with your own expressions (your smile, blinks, mouth as you talk), sent to the call as a camera.
 
     run.bat                      the webcam, a preview window, and OBS's virtual camera for your calls
@@ -44,12 +44,12 @@ from insightface.app.common import Face
 import mediapipe as mp
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-WINDOW = "Persona Cam"
+WINDOW = "Changeling Realtime"
 SWAP_MODEL = os.path.join(HERE, "models", "inswapper_128.onnx")
 # FaceFusion's occluder (XSeg): which part of the face is really face, and which is a hand, hair or a cup
 # in front of it, so the swap leaves those alone. Optional: without it the swap paints over them.
 OCCLUDER_MODEL = os.path.join(HERE, "models", "xseg_1.onnx")
-# InsightFace's buffalo_l: only the two of its five models Persona Cam uses (FaceAnalysis loads all five,
+# InsightFace's buffalo_l: only the two of its five models Changeling Realtime uses (FaceAnalysis loads all five,
 # twice over for two of them: that was most of a 100 s start)
 BUFFALO = os.path.join(os.path.expanduser("~"), ".insightface", "models", "buffalo_l")
 PERSONA = os.path.join(HERE, "personas", "input.jpeg")            # hers: private, not in git
@@ -73,7 +73,7 @@ def find_persona(name):
     return None
 
 
-def pick_persona(title="Persona Cam: the face you become"):
+def pick_persona(title="Changeling Realtime: the face you become"):
     """A file picker opened in personas/; the chosen picture's path, or None (cancelled)."""
     import tkinter as tk
     from tkinter import filedialog
@@ -105,7 +105,7 @@ def choose_persona(given, ask=True):
         root.withdraw()
         root.attributes("-topmost", True)
         default = messagebox.askyesno(
-            "Persona Cam", "Use the default input?\n\npersonas/input.jpeg\n\n"
+            "Changeling Realtime", "Use the default input?\n\npersonas/input.jpeg\n\n"
             "No: pick another picture from personas/", parent=root)
         root.destroy()
     except Exception as e:                     # no display: the default
@@ -354,16 +354,20 @@ class Swapper:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Persona Cam")
+    ap = argparse.ArgumentParser(description="Changeling Realtime")
     ap.add_argument("--camera", type=int, default=0)
     ap.add_argument("--source", help="a video or picture instead of the webcam")
     ap.add_argument("--persona", help="the face you become (a file, or a name in personas/); "
-                                      "without it Persona Cam asks: the default input.jpeg, or another")
+                                      "without it Changeling Realtime asks: the default input.jpeg, or another")
     ap.add_argument("--width", type=int, default=1280)
     ap.add_argument("--height", type=int, default=720)
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--no-virtual", action="store_true")
     ap.add_argument("--snapshot", help="save one swapped frame to this file and quit (for testing)")
+    ap.add_argument("--voice", default="off", help="the voice to start with: off, female, male (A changes it)")
+    ap.add_argument("--mic", help="the microphone (part of its name; default: Windows' default)")
+    ap.add_argument("--cable", default="CABLE Input", help="the virtual cable's playback side (default CABLE Input)")
+    ap.add_argument("--monitor", help="also play the voice here, to hear yourself (part of a name: use headphones)")
     args = ap.parse_args()
     args.persona = choose_persona(args.persona, ask=not args.snapshot)
 
@@ -381,67 +385,24 @@ def main():
         print(f"Saved {args.snapshot} (face found: {found}, persona: {persona[0]})")
         return
 
-    print("Opening the preview window and the camera ...", flush=True)
-    cv2.namedWindow(WINDOW, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(WINDOW, 960, 540)
-    cv2.createTrackbar("smooth %", WINDOW, 50, 90, lambda v: None)
-    cv2.createTrackbar("strength %", WINDOW, 100, 100, lambda v: None)
+    voice = None
+    try:
+        from voice import VoiceChanger
+        voice = VoiceChanger(mic=args.mic, cable=args.cable, monitor=args.monitor, preset=args.voice)
+        if not voice.start():
+            voice = None
+        else:
+            print("Voice: " + (f"{voice.preset}, to the call through the virtual cable" if voice.to_call else voice.why))
+    except Exception as e:
+        print(f"Voice: off ({e})")
+        voice = None
 
-    virtual, want_virtual = None, not args.no_virtual
-    swap_on = True
-    fps, t_last = 0.0, time.monotonic()
-    while True:
-        frame = read()
-        if frame is None:
-            print("The camera stopped giving pictures.")
-            break
-        if virtual is None and want_virtual:
-            virtual = open_virtual(frame.shape[1], frame.shape[0], args.fps)
-            want_virtual = virtual is not None
-        sw.smooth = cv2.getTrackbarPos("smooth %", WINDOW) / 100
-        strength = cv2.getTrackbarPos("strength %", WINDOW) / 100
-        found = False
-        out = frame
-        if swap_on and persona:
-            out, found = sw.swap(frame, persona[1], strength)
-        if virtual is not None:
-            virtual.send(out)
-        now = time.monotonic()
-        fps = fps * 0.9 + 0.1 / max(now - t_last, 1e-3)
-        t_last = now
-        view = out.copy()
-        name = persona[0] if persona else "none"
-        status = [f"{fps:4.1f} fps   persona: {name}   "
-                  f"swap: {'on' if swap_on else 'OFF'}   occlusion: {'on' if sw.occlusion_on else 'off'}   virtual camera: {'on' if virtual is not None else 'off'}"]
-        if not persona:
-            status.append("No persona: put her face in personas/input.jpeg and press R")
-        elif swap_on and not found:
-            status.append("No face in view")
-        caption(view, status)
-        cv2.imshow(WINDOW, view)
-        k = cv2.waitKey(1) & 0xFF
-        if k in (ord("q"), 27) or cv2.getWindowProperty(WINDOW, cv2.WND_PROP_VISIBLE) < 1:
-            break
-        if k == ord("s"):
-            swap_on = not swap_on
-        elif k == ord("o") and sw.occluder is not None:
-            sw.occlusion_on = not sw.occlusion_on
-        elif k == ord("v"):
-            if virtual is not None:
-                virtual.close()
-                virtual, want_virtual = None, False
-            else:
-                want_virtual = True
-        elif k == ord("r"):
-            persona = load_persona(args.persona, sw)
-        elif k == ord("p"):                              # pick another persona, without a restart
-            path = pick_persona()
-            if path:
-                args.persona = path
-                persona = load_persona(path, sw) or persona
-    if virtual is not None:
-        virtual.close()
-    cv2.destroyAllWindows()
+    from window import Window
+    print("Opening the window and the camera ...", flush=True)
+    Window(args, read, still, sw, persona, load_persona=load_persona, pick_persona=pick_persona,
+           open_virtual=open_virtual, voice=voice).run()
+    if voice is not None:
+        voice.stop()
 
 
 if __name__ == "__main__":

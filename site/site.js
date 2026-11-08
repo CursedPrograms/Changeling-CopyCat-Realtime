@@ -1,4 +1,4 @@
-// Persona Cam's site: the sample sheet opens full size (click, or Esc / click again to close).
+// Changeling Realtime's site: the sample sheet opens full size (click, or Esc / click again to close).
 (function () {
   var sheet = document.getElementById('sheet');
   var box = document.getElementById('lightbox');

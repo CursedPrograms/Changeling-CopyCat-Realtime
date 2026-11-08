@@ -6,3 +6,5 @@ models/*.onnx
 models/*.part
 # the test pictures stay private (personas/input.jpeg is in the repo)
 personas/test*
+# your recordings stay on your PC
+recordings/

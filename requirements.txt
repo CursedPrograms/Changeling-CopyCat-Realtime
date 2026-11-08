@@ -1,4 +1,4 @@
-# Persona Cam. Windows + NVIDIA GPU, Python 3.11 (the same recipe as Roop-FaceSwap's, which works here).
+# Changeling Realtime. Windows + NVIDIA GPU, Python 3.11 (the same recipe as Changeling's, which works here).
 --extra-index-url https://download.pytorch.org/whl/cu121
 numpy==1.26.4
 opencv-python==4.8.0.74
@@ -13,3 +13,6 @@ torch==2.5.1
 pyvirtualcam
 # the eyelids, for blinks: the swap model only half-closes her eyes, so blinks are your own (MediaPipe)
 mediapipe==0.10.21
+# the window (Changeling's look) and the voice: your mic, changed, to the call and into recordings
+customtkinter==5.2.2
+sounddevice
