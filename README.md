@@ -1,14 +1,21 @@
+<p align="center"><img src="samples/persona_samples.jpg" alt="Three faces, each as the camera sees it, then swapped to the persona, then the persona picture" width="640"></p>
+
 # Persona Cam
 
-A private project: a live face swap for video calls. You become the face in `personas/input.jpeg`, with
-your own expressions (your smile, your blinks, your mouth as you talk), and your call sees it as an
-ordinary camera.
+**Website:** https://cursedprograms.github.io/Persona-Cam/
+
+A live face swap for video calls. You become the face in `personas/input.jpeg`, with your own expressions
+(your smile, your blinks, your mouth as you talk), and your call (Zoom, Teams, Discord, Meet) sees it as an
+ordinary camera. The personas are **AI-generated people who don't exist**.
+
+Each row above: a face as the camera sees it, the same frame through Persona Cam, and the persona.
 
 ## Use it
 
-1. Put her face in `personas/input.jpeg` (see below). Without it, `personas/placeholder.jpeg` is used.
+1. Put the persona's face in `personas/input.jpeg` (see below; the repo comes with one).
 2. Start `run.bat`. The first time it sets itself up: Python 3.11, PyTorch's CUDA libraries, InsightFace
-   and the GPU ONNX runtime (about 3 GB), and the swap model (`models/inswapper_128.onnx`, about 550 MB).
+   and the GPU ONNX runtime (about 3 GB), the swap model (`models/inswapper_128.onnx`, about 550 MB) and
+   the occlusion model (`models/xseg_1.onnx`). An NVIDIA GPU is needed for a usable frame rate.
 3. In your call, pick the camera **OBS Virtual Camera** (OBS Studio installed; it doesn't have to run).
 
 | Key | Does |
@@ -30,13 +37,12 @@ swapped frame, to try a persona).
 
 ## The personas
 
-Generated people who don't exist (AI Visual Workshop, Gemini...), not photos of real people. What works best:
+Generated people who don't exist (AI Visual Workshop, Gemini...), not photos of real people: becoming a
+real person on a call isn't fair on them. What works best:
 
 - looking straight at the camera, the whole face visible: no hands or hair over the eyes or mouth
 - even light, sharp, a neutral face or a slight smile
 - one face per image (if there are more, the biggest is used); a tight close-up is fine too
-
-`personas/input.jpeg` is git-ignored (hers stays on this PC); `personas/placeholder.jpeg` is the repo's.
 
 ## What it swaps, and what it doesn't
 
@@ -49,6 +55,28 @@ Generated people who don't exist (AI Visual Workshop, Gemini...), not photos of 
 InsightFace finds the face in every frame (SCRFD, from the `buffalo_l` models in `~/.insightface`), its
 five key points are steadied against the last frame's, and `inswapper_128` draws the persona's identity
 (taken once from her image with InsightFace's recognition model) onto your face, all on the GPU through
-onnxruntime-gpu. The finished frame goes to the preview and to OBS's virtual camera.
+onnxruntime-gpu. FaceFusion's XSeg occluder marks what's in front of your face (hands, hair, a cup) every
+other frame, and the swap is left out there; when you blink, your own closed eyes show through. The
+finished frame goes to the preview and to OBS's virtual camera.
 
 InsightFace's models (`buffalo_l`, `inswapper_128`) are for non-commercial use only.
+
+---
+
+<br>
+<div align="center">
+© Cursed Entertainment 2026
+</div>
+<br>
+<div align="center">
+<a href="https://cursed-entertainment.itch.io/" target="_blank">
+    <img src="https://github.com/CursedPrograms/cursedentertainment/raw/main/images/logos/logo-wide-grey.png"
+        alt="CursedEntertainment Logo" style="width:250px;">
+</a>
+</div>
+<br>
+<div align="center">
+  <a href="https://github.com/SynthWomb" target="_blank">
+    <img src="https://github.com/SynthWomb/synth.womb/blob/main/logos/synthwomb07.png" alt="SynthWomb" style="width:200px;"/>
+  </a>
+</div>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Persona Cam: a live face swap for video calls</title>
+<meta name="description" content="Persona Cam swaps your face on video calls for a persona's, live, keeping your own expressions, blinks and talking. InsightFace inswapper on the GPU, OBS Virtual Camera out.">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="Persona Cam: a live face swap for video calls">
+<meta property="og:description" content="Become someone who doesn't exist, live, with your own smile and blinks.">
+<meta property="og:image" content="samples/persona_samples.jpg">
+<link rel="icon" href="site/icon.svg">
+<link rel="stylesheet" href="site/style.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">a live face swap for video calls</div>
+    <h1>Persona Cam</h1>
+    <p class="tagline">Your expressions, someone else's face</p>
+    <p class="lede">You become the face in one picture, with your own smile, your blinks and your mouth as you
+      talk, and your call sees it as an ordinary camera: Zoom, Teams, Discord or Meet. The personas are
+      AI-generated people who don't exist.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/CursedPrograms/Persona-Cam">View on GitHub</a>
+      <a class="btn" href="#use">Use it</a>
+      <a class="btn" href="#how">How it works</a>
+    </div>
+    <div class="tags">
+      <span class="tag">InsightFace inswapper</span><span class="tag">XSeg occlusion</span><span class="tag">onnxruntime-gpu</span>
+      <span class="tag">OBS Virtual Camera</span><span class="tag">Python</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="samples">
+    <h2>What it looks like</h2>
+    <p>Each row: a face as the camera sees it, the same frame through Persona Cam, and the persona it took the
+      face from. The pose, the expression, the hair and the clothes stay the camera's; the face is the
+      persona's. Click to enlarge.</p>
+    <figure class="sheet"><img id="sheet" src="samples/persona_samples.jpg" alt="Three faces, each as the camera sees it, then swapped to the persona, then the persona picture" width="1080" height="1080" loading="lazy"></figure>
+  </section>
+
+  <section id="use">
+    <h2>Use it</h2>
+    <ol class="steps">
+      <li>Put the persona's face in <code>personas/input.jpeg</code> (the repo comes with one).</li>
+      <li>Start <code>run.bat</code>. The first time it sets itself up: Python 3.11, PyTorch's CUDA libraries, InsightFace and the GPU ONNX runtime (about 3 GB), the swap model (about 550 MB) and the occlusion model.</li>
+      <li>In your call, pick the camera <strong>OBS Virtual Camera</strong>. <a href="https://obsproject.com/">OBS Studio</a> must be installed for its virtual camera; it doesn't have to be running.</li>
+    </ol>
+    <div class="grid two">
+      <div class="card">
+        <h3>Keys</h3>
+        <table>
+          <tr><td><kbd>S</kbd></td><td>swap on / off</td></tr>
+          <tr><td><kbd>O</kbd></td><td>occlusion on / off: hands, hair, a cup stay in front</td></tr>
+          <tr><td><kbd>V</kbd></td><td>virtual camera on / off</td></tr>
+          <tr><td><kbd>R</kbd></td><td>read <code>personas/input.jpeg</code> again</td></tr>
+          <tr><td><kbd>Q</kbd> <kbd>Esc</kbd></td><td>quit</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Sliders</h3>
+        <table>
+          <tr><td>smooth %</td><td>steadies where the face sits from frame to frame</td></tr>
+          <tr><td>strength %</td><td>how much of the swapped face shows</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="personas">
+    <h2>The personas</h2>
+    <p>Generate them rather than using photos of real people: becoming a real person on a call isn't fair on
+      them. What works best: looking straight at the camera, the whole face visible, even light, sharp, a
+      neutral face or a slight smile, one face per picture.</p>
+  </section>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <div class="grid">
+      <div class="card"><span class="n">1</span><h3>Find you</h3><p>InsightFace's SCRFD finds your face in every frame; its five key points are steadied against the last frame's, so the swap doesn't jitter.</p></div>
+      <div class="card"><span class="n">2</span><h3>Swap</h3><p><code>inswapper_128</code> draws the persona's identity, read once from her picture, onto your face, on the GPU.</p></div>
+      <div class="card"><span class="n">3</span><h3>What's in front</h3><p>FaceFusion's XSeg occluder marks hands, hair and cups in front of your face, and the swap is left out there.</p></div>
+      <div class="card"><span class="n">4</span><h3>You, still</h3><p>Your own eyes show through when you blink, and the result goes back into the frame, to the preview and OBS's virtual camera.</p></div>
+    </div>
+    <p>InsightFace's models (<code>buffalo_l</code>, <code>inswapper_128</code>) are for non-commercial use only.</p>
+  </section>
+</main>
+
+<div id="lightbox" class="lightbox" hidden><img alt=""></div>
+
+<footer id="site-footer">&copy; Cursed Entertainment 2026</footer>
+<script src="site/site.js"></script>
+<script src="https://cursedprograms.github.io/RIFT/site/footer.js"></script>
+</body>
+</html>
