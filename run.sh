@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run.sh - Changeling Realtime. Sets up ./venv the first time (and again when requirements.txt changes), fetches the
+# run.sh - Changeling CopyCat Realtime. Sets up ./venv the first time (and again when requirements.txt changes), fetches the
 # models once, then starts app.py. Options pass through: ./run.sh --camera 1 ...
 set -e
 cd "$(dirname "$0")"

@@ -1,4 +1,4 @@
-"""window.py - Changeling Realtime's window, in Changeling's look (customtkinter, the Cursed pink).
+"""window.py - Changeling CopyCat Realtime's window, in Changeling's look (customtkinter, the Cursed pink).
 
 The picture on the left, the controls on the right. The camera, the swap, the virtual camera and the
 recording run on their own thread, so the window never waits for the GPU; the window shows the latest
@@ -21,8 +21,8 @@ from recorder import Recorder
 from voice import PRESETS, SR
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-NAME = "Changeling Realtime"
-GITHUB = "https://github.com/CursedPrograms/Changeling-Realtime"
+NAME = "Changeling CopyCat Realtime"
+GITHUB = "https://github.com/CursedPrograms/Changeling-CopyCat-Realtime"
 KOFI = "https://ko-fi.com/cursedentertainment"
 PINK, RED = "#e0408a", "#d43c3c"
 

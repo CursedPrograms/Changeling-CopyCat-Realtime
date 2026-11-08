@@ -1,4 +1,4 @@
-# Changeling Realtime. Windows + NVIDIA GPU, Python 3.11 (the same recipe as Changeling's, which works here).
+# Changeling CopyCat Realtime. Windows + NVIDIA GPU, Python 3.11 (the same recipe as Changeling's, which works here).
 --extra-index-url https://download.pytorch.org/whl/cu121
 numpy==1.26.4
 opencv-python==4.8.0.74

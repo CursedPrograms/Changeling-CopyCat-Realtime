@@ -1,5 +1,5 @@
 """voice.py - your voice, changed live: out to a virtual microphone your call uses (VB-Audio Virtual Cable:
-the call picks "CABLE Output" as its microphone), and into Changeling Realtime's recordings. The same voice
+the call picks "CABLE Output" as its microphone), and into Changeling CopyCat Realtime's recordings. The same voice
 changer as Mosaic Mask's.
 
     female    your voice taken to a woman's pitch (about 210 Hz), the formants (the resonance that sounds

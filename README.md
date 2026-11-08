@@ -1,16 +1,16 @@
 <p align="center"><img src="samples/persona_samples.jpg" alt="Three faces, each as the camera sees it, then swapped to the persona, then the persona picture" width="640"></p>
 
-# Changeling Realtime
+# Changeling CopyCat Realtime
 
-*Formerly Persona Cam. Part of the Changeling family: [Changeling](https://github.com/CursedPrograms/Changeling) swaps faces in photos and videos; Changeling Realtime does it live on the webcam.*
+*Formerly Persona Cam. Part of the Changeling family: [Changeling CopyCat](https://github.com/CursedPrograms/Changeling-CopyCat) swaps faces in photos and videos; CopyCat Realtime does it live on the webcam.*
 
-**Website:** https://cursedprograms.github.io/Changeling-Realtime/
+**Website:** https://cursedprograms.github.io/Changeling-CopyCat-Realtime/
 
 A live face swap for video calls. You become the face in `personas/input.jpeg`, with your own expressions
 (your smile, your blinks, your mouth as you talk), and your call (Zoom, Teams, Discord, Meet) sees it as an
 ordinary camera. The personas are **AI-generated people who don't exist**.
 
-Each row above: a face as the camera sees it, the same frame through Changeling Realtime, and the persona.
+Each row above: a face as the camera sees it, the same frame through Changeling CopyCat Realtime, and the persona.
 
 ## Use it
 
