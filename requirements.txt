@@ -1,0 +1,15 @@
+# Persona Cam. Windows + NVIDIA GPU, Python 3.11 (the same recipe as Roop-FaceSwap's, which works here).
+--extra-index-url https://download.pytorch.org/whl/cu121
+numpy==1.26.4
+opencv-python==4.8.0.74
+onnx==1.16.1
+# insightface ships only as source on PyPI: on Windows this prebuilt wheel needs no C++ compiler
+insightface @ https://github.com/Gourieff/Assets/raw/main/Insightface/insightface-0.7.3-cp311-cp311-win_amd64.whl
+# insightface pulls in albumentations; 1.4.8+ needs a C++ compiler on Windows
+albumentations==1.4.3
+onnxruntime-gpu==1.20.2
+# torch is here for its CUDA 12 / cuDNN DLLs, which onnxruntime-gpu runs on
+torch==2.5.1
+pyvirtualcam
+# the eyelids, for blinks: the swap model only half-closes her eyes, so blinks are your own (MediaPipe)
+mediapipe==0.10.21
