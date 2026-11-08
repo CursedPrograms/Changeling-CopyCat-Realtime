@@ -47,7 +47,8 @@
     <h2>Use it</h2>
     <ol class="steps">
       <li>Put the persona's face in <code>personas/input.jpeg</code> (the repo comes with one).</li>
-      <li>Start <code>run.bat</code>. The first time it sets itself up: Python 3.11, PyTorch's CUDA libraries, InsightFace and the GPU ONNX runtime (about 3 GB), the swap model (about 550 MB) and the occlusion model.</li>
+      <li>Start <code>run.bat</code> (or <code>run.ps1</code>, <code>run.sh</code>). The first time it sets itself up: Python 3.11, PyTorch's CUDA libraries, InsightFace and the GPU ONNX runtime (about 3 GB), the swap model (about 550 MB) and the occlusion model.</li>
+      <li>A dialog asks: use the default input? No opens a file picker in <code>personas/</code>.</li>
       <li>In your call, pick the camera <strong>OBS Virtual Camera</strong>. <a href="https://obsproject.com/">OBS Studio</a> must be installed for its virtual camera; it doesn't have to be running.</li>
     </ol>
     <div class="grid two">
@@ -57,7 +58,8 @@
           <tr><td><kbd>S</kbd></td><td>swap on / off</td></tr>
           <tr><td><kbd>O</kbd></td><td>occlusion on / off: hands, hair, a cup stay in front</td></tr>
           <tr><td><kbd>V</kbd></td><td>virtual camera on / off</td></tr>
-          <tr><td><kbd>R</kbd></td><td>read <code>personas/input.jpeg</code> again</td></tr>
+          <tr><td><kbd>P</kbd></td><td>pick another persona, no restart</td></tr>
+          <tr><td><kbd>R</kbd></td><td>read the persona's picture again</td></tr>
           <tr><td><kbd>Q</kbd> <kbd>Esc</kbd></td><td>quit</td></tr>
         </table>
       </div>

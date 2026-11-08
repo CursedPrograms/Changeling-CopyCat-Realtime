@@ -13,17 +13,20 @@ Each row above: a face as the camera sees it, the same frame through Persona Cam
 ## Use it
 
 1. Put the persona's face in `personas/input.jpeg` (see below; the repo comes with one).
-2. Start `run.bat`. The first time it sets itself up: Python 3.11, PyTorch's CUDA libraries, InsightFace
+2. Start `run.bat` (or `.\run.ps1` in PowerShell, `./run.sh` in Git Bash or Linux). The first time it sets itself up: Python 3.11, PyTorch's CUDA libraries, InsightFace
    and the GPU ONNX runtime (about 3 GB), the swap model (`models/inswapper_128.onnx`, about 550 MB) and
    the occlusion model (`models/xseg_1.onnx`). An NVIDIA GPU is needed for a usable frame rate.
-3. In your call, pick the camera **OBS Virtual Camera** (OBS Studio installed; it doesn't have to run).
+3. A dialog asks first: **use the default input (`personas/input.jpeg`)?** Yes for her; No opens a file
+   picker in `personas/` to become someone else this time.
+4. In your call, pick the camera **OBS Virtual Camera** (OBS Studio installed; it doesn't have to run).
 
 | Key | Does |
 | :--- | :--- |
 | <kbd>S</kbd> | swap on / off |
 | <kbd>O</kbd> | occlusion on / off: hands, hair, a cup in front of your face stay in front of hers |
 | <kbd>V</kbd> | virtual camera on / off |
-| <kbd>R</kbd> | read `personas/input.jpeg` again (after replacing it) |
+| <kbd>P</kbd> | pick another persona: a file picker in `personas/`, no restart |
+| <kbd>R</kbd> | read the persona's picture again (after replacing it) |
 | <kbd>Q</kbd> or <kbd>Esc</kbd> | quit |
 
 | Slider | Does |
@@ -32,7 +35,7 @@ Each row above: a face as the camera sees it, the same frame through Persona Cam
 | strength % | how much of the swapped face shows: 100 is all of it |
 
 `run.bat --camera 1` (another webcam), `run.bat --source clip.mp4` (a video or picture instead of the
-webcam), `run.bat --no-virtual` (just the preview), `run.bat --persona other.jpg` (become another face for this run), `run.bat --source me.jpg --snapshot out.png` (one
+webcam), `run.bat --no-virtual` (just the preview), `run.bat --persona test2` (skip the question: a picture in `personas/` by name, or any file), `run.bat --source me.jpg --snapshot out.png` (one
 swapped frame, to try a persona).
 
 ## The personas

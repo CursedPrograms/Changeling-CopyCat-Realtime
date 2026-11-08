@@ -5,7 +5,10 @@ with your own expressions (your smile, blinks, mouth as you talk), sent to the c
     run.bat --camera 1           another webcam
     run.bat --source clip.mp4    a video or a picture instead of the webcam (for trying it out)
     run.bat --no-virtual         just the preview, no virtual camera
-    run.bat --persona other.jpg  become another face for this run (instead of personas/input.jpeg)
+    run.bat --persona test2      become another face for this run (a file, or a picture's name in personas/)
+
+Started without --persona it asks first, in a dialog: use the default input (personas/input.jpeg)?
+No opens a file picker in personas/. P in the preview picks another one without a restart.
 
 In your call (Zoom, Teams, Discord, Meet...) pick the camera "OBS Virtual Camera". OBS Studio must be
 installed (its virtual camera driver), but doesn't have to be running.
@@ -17,7 +20,8 @@ Keys in the preview window:
     S          swap on / off (your own face, for a moment)
     O          occlusion on / off (hands, hair, a cup in front of the face stay in front of hers)
     V          virtual camera on / off
-    R          read personas/input.jpeg again (after replacing it)
+    P          pick another persona (a file picker in personas/)
+    R          read the persona's picture again (after replacing it)
     Q or Esc   quit
 Sliders: smooth (steadies where the face sits, frame to frame), strength (how much of the swapped face
 shows, 100 = all of it).
@@ -57,6 +61,59 @@ IMAGE_EXT = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".jfif")
 
 
 # ---- the face you become
+def find_persona(name):
+    """A file path for name: a path as it is, or a picture in personas/ (the extension may be left off)."""
+    if os.path.isfile(name):
+        return name
+    folder = os.path.join(HERE, "personas")
+    for f in sorted(os.listdir(folder)):
+        stem, ext = os.path.splitext(f)
+        if ext.lower() in IMAGE_EXT and name.lower() in (f.lower(), stem.lower()):
+            return os.path.join(folder, f)
+    return None
+
+
+def pick_persona(title="Persona Cam: the face you become"):
+    """A file picker opened in personas/; the chosen picture's path, or None (cancelled)."""
+    import tkinter as tk
+    from tkinter import filedialog
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes("-topmost", True)
+    path = filedialog.askopenfilename(
+        parent=root, title=title, initialdir=os.path.join(HERE, "personas"),
+        filetypes=[("Pictures", " ".join("*" + e for e in IMAGE_EXT)), ("All files", "*.*")])
+    root.destroy()
+    return path or None
+
+
+def choose_persona(given, ask=True):
+    """The persona for this run: --persona if given; else a dialog: use the default input (personas/
+    input.jpeg)? Yes: her. No: a file picker in personas/ (cancel: her after all). No dialogs for a
+    snapshot."""
+    if given:
+        path = find_persona(given)
+        if path is None:
+            sys.exit(f"No persona called {given} (a file, or a picture's name in personas/)")
+        return path
+    if not ask:
+        return PERSONA
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        default = messagebox.askyesno(
+            "Persona Cam", "Use the default input?\n\npersonas/input.jpeg\n\n"
+            "No: pick another picture from personas/", parent=root)
+        root.destroy()
+    except Exception as e:                     # no display: the default
+        print(f"Persona: no dialog ({e}): personas/input.jpeg")
+        return PERSONA
+    return PERSONA if default else (pick_persona() or PERSONA)
+
+
 def load_persona(path, sw):
     """(name, face) for the biggest face in the image at path, or None (no file, or no face in it)."""
     if path == PERSONA and not os.path.exists(PERSONA) and os.path.exists(PLACEHOLDER):
@@ -300,13 +357,15 @@ def main():
     ap = argparse.ArgumentParser(description="Persona Cam")
     ap.add_argument("--camera", type=int, default=0)
     ap.add_argument("--source", help="a video or picture instead of the webcam")
-    ap.add_argument("--persona", default=PERSONA, help="the face you become (default personas/input.jpeg)")
+    ap.add_argument("--persona", help="the face you become (a file, or a name in personas/); "
+                                      "without it Persona Cam asks: the default input.jpeg, or another")
     ap.add_argument("--width", type=int, default=1280)
     ap.add_argument("--height", type=int, default=720)
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--no-virtual", action="store_true")
     ap.add_argument("--snapshot", help="save one swapped frame to this file and quit (for testing)")
     args = ap.parse_args()
+    args.persona = choose_persona(args.persona, ask=not args.snapshot)
 
     read, still = open_source(args)
     sw = Swapper()
@@ -375,6 +434,11 @@ def main():
                 want_virtual = True
         elif k == ord("r"):
             persona = load_persona(args.persona, sw)
+        elif k == ord("p"):                              # pick another persona, without a restart
+            path = pick_persona()
+            if path:
+                args.persona = path
+                persona = load_persona(path, sw) or persona
     if virtual is not None:
         virtual.close()
     cv2.destroyAllWindows()
