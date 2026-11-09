@@ -1,4 +1,4 @@
-"""app.py - Changeling Simia Realtime: a live face swap for video calls. You become the face in personas/input.jpeg,
+"""app.py - Changeling Imago Realtime: a live face swap for video calls. You become the face in personas/input.jpeg,
 with your own expressions (your smile, blinks, mouth as you talk), sent to the call as a camera.
 
     run.bat                      the webcam, a preview window, and OBS's virtual camera for your calls
@@ -44,12 +44,12 @@ from insightface.app.common import Face
 import mediapipe as mp
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-WINDOW = "Changeling Simia Realtime"
+WINDOW = "Changeling Imago Realtime"
 SWAP_MODEL = os.path.join(HERE, "models", "inswapper_128.onnx")
 # FaceFusion's occluder (XSeg): which part of the face is really face, and which is a hand, hair or a cup
 # in front of it, so the swap leaves those alone. Optional: without it the swap paints over them.
 OCCLUDER_MODEL = os.path.join(HERE, "models", "xseg_1.onnx")
-# InsightFace's buffalo_l: only the two of its five models Changeling Simia Realtime uses (FaceAnalysis loads all five,
+# InsightFace's buffalo_l: only the two of its five models Changeling Imago Realtime uses (FaceAnalysis loads all five,
 # twice over for two of them: that was most of a 100 s start)
 BUFFALO = os.path.join(os.path.expanduser("~"), ".insightface", "models", "buffalo_l")
 PERSONA = os.path.join(HERE, "personas", "input.jpeg")            # hers: private, not in git
@@ -73,7 +73,7 @@ def find_persona(name):
     return None
 
 
-def pick_persona(title="Changeling Simia Realtime: the face you become"):
+def pick_persona(title="Changeling Imago Realtime: the face you become"):
     """A file picker opened in personas/; the chosen picture's path, or None (cancelled)."""
     import tkinter as tk
     from tkinter import filedialog
@@ -105,7 +105,7 @@ def choose_persona(given, ask=True):
         root.withdraw()
         root.attributes("-topmost", True)
         default = messagebox.askyesno(
-            "Changeling Simia Realtime", "Use the default input?\n\npersonas/input.jpeg\n\n"
+            "Changeling Imago Realtime", "Use the default input?\n\npersonas/input.jpeg\n\n"
             "No: pick another picture from personas/", parent=root)
         root.destroy()
     except Exception as e:                     # no display: the default
@@ -413,11 +413,11 @@ class Swapper:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Changeling Simia Realtime")
+    ap = argparse.ArgumentParser(description="Changeling Imago Realtime")
     ap.add_argument("--camera", type=int, default=0)
     ap.add_argument("--source", help="a video or picture instead of the webcam")
     ap.add_argument("--persona", help="the face you become (a file, or a name in personas/); "
-                                      "without it Changeling Simia Realtime asks: the default input.jpeg, or another")
+                                      "without it Changeling Imago Realtime asks: the default input.jpeg, or another")
     ap.add_argument("--width", type=int, default=1280)
     ap.add_argument("--height", type=int, default=720)
     ap.add_argument("--fps", type=int, default=30)

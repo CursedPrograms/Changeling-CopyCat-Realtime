@@ -1,4 +1,4 @@
-# run.ps1 - Changeling Simia Realtime. Sets up .\venv the first time (and again when requirements.txt changes), fetches the
+# run.ps1 - Changeling Imago Realtime. Sets up .\venv the first time (and again when requirements.txt changes), fetches the
 # models once, then starts app.py. Options pass through: .\run.ps1 --camera 1 ...
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
@@ -7,7 +7,7 @@ function Fail($msg) { Write-Host "Setup failed: $msg"; Read-Host 'Press Enter'; 
 if (-not (Test-Path $Py)) {
     Write-Host 'Creating venv ...'
     & py -3.11 -m venv venv
-    if ($LASTEXITCODE) { Fail 'Changeling Simia Realtime needs Python 3.11.' }
+    if ($LASTEXITCODE) { Fail 'Changeling Imago Realtime needs Python 3.11.' }
 }
 $stamp = 'venv\requirements.installed'
 if (-not (Test-Path $stamp) -or (Get-FileHash requirements.txt).Hash -ne (Get-FileHash $stamp).Hash) {

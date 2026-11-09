@@ -1,5 +1,5 @@
 @echo off
-REM run.bat - Changeling Simia Realtime. Sets up .\venv the first time (and again when requirements.txt changes),
+REM run.bat - Changeling Imago Realtime. Sets up .\venv the first time (and again when requirements.txt changes),
 REM fetches the swap model once, then starts app.py. Options pass through: run.bat --camera 1 ...
 setlocal
 cd /d "%~dp0"
@@ -28,6 +28,6 @@ if not exist "models\xseg_1.onnx" (
 if errorlevel 1 pause
 exit /b
 :fail
-echo Setup failed: Changeling Simia Realtime needs Python 3.11 and an NVIDIA GPU (CUDA 12 drivers).
+echo Setup failed: Changeling Imago Realtime needs Python 3.11 and an NVIDIA GPU (CUDA 12 drivers).
 pause
 exit /b 1

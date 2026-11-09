@@ -51,7 +51,7 @@ def certificate(ip):
     from cryptography.x509.oid import NameOID
 
     k = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Changeling Simia Realtime")])
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Changeling Imago Realtime")])
     now = datetime.datetime.now(datetime.timezone.utc)
     sans = [x509.DNSName("localhost"), x509.IPAddress(ipaddress.ip_address(ip))]
     c = (x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(k.public_key())

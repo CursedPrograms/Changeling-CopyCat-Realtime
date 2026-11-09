@@ -11,11 +11,11 @@
 
 <p align="center"><img src="samples/persona_samples.jpg" alt="Three faces, each as the camera sees it, then swapped to the persona, then the persona picture" width="640"></p>
 
-# Changeling Simia Realtime
+# Changeling Imago Realtime
 
 *Part of the Changeling family, all together in [Changeling Studio](https://github.com/CursedPrograms/Changeling-Studio):
-[Simia](https://github.com/CursedPrograms/Changeling-Simia) ·
-**Simia Realtime** ·
+[Imago](https://github.com/CursedPrograms/Changeling-Imago) ·
+**Imago Realtime** ·
 [Tiresias](https://github.com/CursedPrograms/Changeling-Tiresias) (gender) ·
 [Chronos](https://github.com/CursedPrograms/Changeling-Chronos) (age) ·
 [Natio](https://github.com/CursedPrograms/Changeling-Natio) (where in the world) ·
@@ -27,15 +27,15 @@ realtime: [Tiresias](https://github.com/CursedPrograms/Changeling-Tiresias-Realt
 [Natio](https://github.com/CursedPrograms/Changeling-Natio-Realtime) ·
 [Cosmeta](https://github.com/CursedPrograms/Changeling-Cosmeta-Realtime).*
 
-**Website:** https://cursedprograms.github.io/Changeling-Simia-Realtime/
+**Website:** https://cursedprograms.github.io/Changeling-Imago-Realtime/
 
-*Simia* is Latin for an ape, and the Romans' word for a copycat: Horace calls an imitating poet *simius iste*, "that ape". (It was Changeling CopyCat until 2026-11-09.)
+*Imago* is Latin for a likeness, and the Romans' word for the wax masks cast from a person's face and kept in the family hall: a copy of a face that someone could wear. (It's also where "image" comes from.)
 
 A live face swap for video calls. You become the face in `personas/input.jpeg`, with your own expressions
 (your smile, your blinks, your mouth as you talk), and your call (Zoom, Teams, Discord, Meet) sees it as an
 ordinary camera. The personas are **AI-generated people who don't exist**.
 
-Each row above: a face as the camera sees it, the same frame through Changeling Simia Realtime, and the persona.
+Each row above: a face as the camera sees it, the same frame through Changeling Imago Realtime, and the persona.
 
 ## Use it
 
@@ -51,7 +51,7 @@ The window (Changeling's look): the picture on the left; on the right the person
 and **Reload**, switches for the swap, occlusion and the virtual camera, the smooth and strength sliders,
 the voice, and **Record**.
 
-![Changeling Simia Realtime's window](samples/window.png)
+![Changeling Imago Realtime's window](samples/window.png)
 
 | Key | Does |
 | :--- | :--- |

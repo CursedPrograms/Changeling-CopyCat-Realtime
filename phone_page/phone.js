@@ -1,4 +1,4 @@
-// The phone's side of Changeling Simia Realtime: the camera goes to the PC a picture at a time (each answer is
+// The phone's side of Changeling Imago Realtime: the camera goes to the PC a picture at a time (each answer is
 // the swapped picture, shown big), and the microphone in short pieces of 16-bit sound at 24 kHz.
 (function () {
   "use strict";
@@ -59,7 +59,7 @@
           }
           loop();
         })
-        .catch(function () { say("Lost the PC: is Simia Realtime still running?"); setTimeout(loop, 1000); });
+        .catch(function () { say("Lost the PC: is Imago Realtime still running?"); setTimeout(loop, 1000); });
     }, "image/jpeg", 0.7);
   }
 
