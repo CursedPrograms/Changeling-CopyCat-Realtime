@@ -125,6 +125,7 @@ class Window:
         self.virt_sw = self._switch(side, "Virtual camera  (V)", self.want_virtual, self.set_virtual)
         self.smooth = self._slider(side, "Smooth", 0, 90, 50, lambda v: setattr(self.sw, "smooth", v / 100))
         self._slider(side, "Strength", 0, 100, 100, lambda v: setattr(self, "strength", v / 100))
+        self._slider(side, "Persona's skin", 0, 100, int(round(self.sw.skin * 100)), lambda v: setattr(self.sw, "skin", v / 100))
 
         self._section(side, "Voice  (A)")
         self.voice_pick = ctk.CTkSegmentedButton(side, values=PRESETS, command=self.set_voice)

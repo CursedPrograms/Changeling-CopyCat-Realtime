@@ -127,11 +127,14 @@ def load_persona(path, sw):
         # a face that fills the whole picture (a tight close-up) isn't found: give it room and look again
         h, w = img.shape[:2]
         pad = int(max(h, w) * 0.4)
-        faces = sw.faces(cv2.copyMakeBorder(img, pad, pad, pad, pad, cv2.BORDER_REPLICATE), size=640, identify=True)
+        img = cv2.copyMakeBorder(img, pad, pad, pad, pad, cv2.BORDER_REPLICATE)
+        faces = sw.faces(img, size=640, identify=True)
     if not faces:
         print(f"Persona: no face found in {path}: a clearer, front-facing photo works best")
         return None
     face = max(faces, key=lambda x: (x.bbox[2] - x.bbox[0]) * (x.bbox[3] - x.bbox[1]))
+    if face.kps is not None:
+        sw.set_look(img, face)                 # her skin, for the "Persona's skin" slider
     name = os.path.splitext(os.path.basename(path))[0]
     print(f"Persona: {name} ready")
     return name, face
@@ -226,6 +229,51 @@ class Blinks:
         return cv2.GaussianBlur(mask, (k, k), 0)
 
 
+class Look:
+    """The persona's skin, worn too: inswapper carries a face's identity but keeps your own skin (its tone, and the
+    fine detail its 128-pixel face can't hold: wrinkles, freckles, pores). This takes them from the persona's own
+    face, in the same 128 x 128 crop the swap works in: the tone (LAB colour, matched on the cheeks, forehead and
+    nose) and the fine detail (what a slight blur takes away), away from the eyes and mouth, which are yours and move.
+    Changeling Chronos's wrinkles and Natio's skin come through this way."""
+
+    def __init__(self, img, face, size=128):
+        from insightface.utils import face_align
+        crop, _ = face_align.norm_crop2(img, face.kps, size)
+        crop = crop.astype(np.float32)
+        k = size / 128.0
+        yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+        skin = (((xx - 64 * k) / (40 * k)) ** 2 + ((yy - 70 * k) / (50 * k)) ** 2 <= 1).astype(np.float32)
+        self.skin = cv2.GaussianBlur(skin, (0, 0), 4 * k)
+        held = np.ones((size, size), np.float32)                    # eyes and mouth: yours, untouched by detail
+        for (x, y), (ax, ay) in (((46.3, 51.7), (13, 9)), ((81.5, 51.5), (13, 9)), ((64, 98), (24, 13))):
+            cv2.ellipse(held, (int(x * k), int(y * k)), (int(ax * k), int(ay * k)), 0, 0, 360, 0.0, -1)
+        self.detail_mask = (self.skin * cv2.GaussianBlur(held, (0, 0), 3 * k))[..., None]
+        self.alpha = self.skin[..., None]
+        lab = cv2.cvtColor(np.clip(crop, 0, 255).astype(np.uint8), cv2.COLOR_BGR2LAB).astype(np.float32)
+        self.mean, self.std = self._stats(lab)
+        self.detail = crop - cv2.GaussianBlur(crop, (0, 0), 1.6 * k)
+
+    def _stats(self, lab):
+        w = self.skin[..., None]
+        total = w.sum() + 1e-6
+        mean = (lab * w).sum((0, 1)) / total
+        std = np.sqrt((((lab - mean) ** 2) * w).sum((0, 1)) / total) + 1e-3
+        return mean, std
+
+    def apply(self, fake, amount):
+        if amount <= 0:
+            return fake
+        lab = cv2.cvtColor(fake, cv2.COLOR_BGR2LAB).astype(np.float32)
+        mean, std = self._stats(lab)
+        ratio = np.clip(self.std / std, 0.7, 1.4)
+        toned = (lab - mean) * ratio + self.mean
+        toned = cv2.cvtColor(np.clip(toned, 0, 255).astype(np.uint8), cv2.COLOR_LAB2BGR).astype(np.float32)
+        out = fake.astype(np.float32)
+        out = out + (toned - out) * self.alpha * amount
+        out = out + self.detail * self.detail_mask * amount
+        return np.clip(out, 0, 255).astype(np.uint8)
+
+
 class Swapper:
     """Finds the face in each frame and swaps it, steadying the face's points between frames."""
 
@@ -257,6 +305,15 @@ class Swapper:
         self.blinks = Blinks()
         self.kps = None              # the steadied face points of the last frame
         self.smooth = 0.5
+        self.look = None             # the persona's skin (Look)
+        self.skin = 0.0              # how much of it: 0 your own skin, 1 hers
+
+    def set_look(self, img, face):
+        try:
+            self.look = Look(img, face)
+        except Exception as e:  # noqa: BLE001 - the swap still works without it
+            print(f"Persona: no skin match ({e})")
+            self.look = None
 
     def faces(self, img, size=320, identify=False):
         """Every face in img (InsightFace Face objects: bbox, kps, and with identify, its identity)."""
@@ -287,6 +344,8 @@ class Swapper:
         if face is None:
             return frame, False
         fake, m = self.model.get(frame, face, persona_face, paste_back=False)
+        if self.look is not None and self.skin > 0:
+            fake = self.look.apply(fake, self.skin)
         visible = self.visible(frame, m) if self.occlusion_on else None
         out = self.paste(frame, fake, m, strength, visible)
         # your blinks: around the face, as your eyes close the picture fades to your own closed lids
@@ -363,6 +422,8 @@ def main():
     ap.add_argument("--height", type=int, default=720)
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--no-virtual", action="store_true")
+    ap.add_argument("--skin", type=int, default=0, help="0 - 100: how much of the persona's skin (tone, wrinkles, "
+                    "freckles) to wear; 0 keeps your own (the Skin slider)")
     ap.add_argument("--snapshot", help="save one swapped frame to this file and quit (for testing)")
     ap.add_argument("--voice", default="off", help="the voice to start with: off, female, male (A changes it)")
     ap.add_argument("--echo", action="store_true", help="female / male in Changeling Echo's trained voices (E)")
@@ -374,6 +435,7 @@ def main():
 
     read, still = open_source(args)
     sw = Swapper()
+    sw.skin = max(0, min(args.skin, 100)) / 100
     persona = load_persona(args.persona, sw)
 
     if args.snapshot:

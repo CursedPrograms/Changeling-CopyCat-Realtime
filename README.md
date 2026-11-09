@@ -44,6 +44,7 @@ the voice, and **Record**.
 | :--- | :--- |
 | smooth % | steadies where the face sits from frame to frame (less jitter; too much and it lags) |
 | strength % | how much of the swapped face shows: 100 is all of it |
+| persona's skin % | how much of her skin you wear too: its tone and its fine detail (wrinkles, freckles, pores), which the swap alone leaves as yours. 0 by default; Changeling's realtime apps (Chronos, Natio, Tiresias Realtime) start it at 70. Your neck and ears keep your own tone, so a big change of skin tone shows at the jaw near 100 |
 
 ### The voice
 
@@ -71,7 +72,7 @@ steady 30 fps in step with the sound; ffmpeg joins them at Stop. Click the line 
 the folder.
 
 `run.bat --camera 1` (another webcam), `run.bat --source clip.mp4` (a video or picture instead of the
-webcam), `run.bat --no-virtual` (just the preview), `run.bat --voice female --echo` (start with a voice, in Echo's),
+webcam), `run.bat --no-virtual` (just the preview), `run.bat --voice female --echo` (start with a voice, in Echo's), `run.bat --skin 70` (the persona's skin slider),
 `run.bat --mic "Focusrite"` (pick the microphone by part of its name), `run.bat --persona test2` (skip the question: a picture in `personas/` by name, or any file), `run.bat --source me.jpg --snapshot out.png` (one
 swapped frame, to try a persona).
 
