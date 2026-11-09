@@ -1,4 +1,4 @@
-"""window.py - Changeling CopyCat Realtime's window, in Changeling's look (customtkinter, the Cursed pink).
+"""window.py - Changeling Simia Realtime's window, in Changeling's look (customtkinter, the Cursed pink).
 
 The picture on the left, the controls on the right. The camera, the swap, the virtual camera and the
 recording run on their own thread, so the window never waits for the GPU; the window shows the latest
@@ -21,8 +21,8 @@ from recorder import Recorder
 from voice import PRESETS, SR
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-NAME = "Changeling CopyCat Realtime"
-GITHUB = "https://github.com/CursedPrograms/Changeling-CopyCat-Realtime"
+NAME = "Changeling Simia Realtime"
+GITHUB = "https://github.com/CursedPrograms/Changeling-Simia-Realtime"
 KOFI = "https://ko-fi.com/cursedentertainment"
 PINK, RED = "#e0408a", "#d43c3c"
 
@@ -102,7 +102,7 @@ class Window:
             ctk.CTkLabel(side, image=logo, text="").pack(anchor="w", padx=12, pady=(12, 0))
         ctk.CTkLabel(side, text="CHANGELING", text_color="gray55",
                      font=ctk.CTkFont(size=11, weight="bold")).pack(anchor="w", padx=12, pady=(10, 0))
-        ctk.CTkLabel(side, text="CopyCat Realtime", font=ctk.CTkFont(size=24, weight="bold"),
+        ctk.CTkLabel(side, text="Simia Realtime", font=ctk.CTkFont(size=24, weight="bold"),
                      text_color=PINK).pack(anchor="w", padx=12)
         ctk.CTkLabel(side, text="your expressions, someone else's face", text_color="gray60").pack(anchor="w", padx=12)
 

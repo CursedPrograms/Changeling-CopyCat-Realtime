@@ -11,11 +11,11 @@
 
 <p align="center"><img src="samples/persona_samples.jpg" alt="Three faces, each as the camera sees it, then swapped to the persona, then the persona picture" width="640"></p>
 
-# Changeling CopyCat Realtime
+# Changeling Simia Realtime
 
 *Part of the Changeling family, all together in [Changeling Studio](https://github.com/CursedPrograms/Changeling-Studio):
-[CopyCat](https://github.com/CursedPrograms/Changeling-CopyCat) ·
-**CopyCat Realtime** ·
+[Simia](https://github.com/CursedPrograms/Changeling-Simia) ·
+**Simia Realtime** ·
 [Tiresias](https://github.com/CursedPrograms/Changeling-Tiresias) (gender) ·
 [Chronos](https://github.com/CursedPrograms/Changeling-Chronos) (age) ·
 [Natio](https://github.com/CursedPrograms/Changeling-Natio) (where in the world) ·
@@ -27,13 +27,15 @@ realtime: [Tiresias](https://github.com/CursedPrograms/Changeling-Tiresias-Realt
 [Natio](https://github.com/CursedPrograms/Changeling-Natio-Realtime) ·
 [Cosmeta](https://github.com/CursedPrograms/Changeling-Cosmeta-Realtime).*
 
-**Website:** https://cursedprograms.github.io/Changeling-CopyCat-Realtime/
+**Website:** https://cursedprograms.github.io/Changeling-Simia-Realtime/
+
+*Simia* is Latin for an ape, and the Romans' word for a copycat: Horace calls an imitating poet *simius iste*, "that ape". (It was Changeling CopyCat until 2026-11-09.)
 
 A live face swap for video calls. You become the face in `personas/input.jpeg`, with your own expressions
 (your smile, your blinks, your mouth as you talk), and your call (Zoom, Teams, Discord, Meet) sees it as an
 ordinary camera. The personas are **AI-generated people who don't exist**.
 
-Each row above: a face as the camera sees it, the same frame through Changeling CopyCat Realtime, and the persona.
+Each row above: a face as the camera sees it, the same frame through Changeling Simia Realtime, and the persona.
 
 ## Use it
 
@@ -49,7 +51,7 @@ The window (Changeling's look): the picture on the left; on the right the person
 and **Reload**, switches for the swap, occlusion and the virtual camera, the smooth and strength sliders,
 the voice, and **Record**.
 
-![Changeling CopyCat Realtime's window](samples/window.png)
+![Changeling Simia Realtime's window](samples/window.png)
 
 | Key | Does |
 | :--- | :--- |
