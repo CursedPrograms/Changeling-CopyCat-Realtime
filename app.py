@@ -365,6 +365,7 @@ def main():
     ap.add_argument("--no-virtual", action="store_true")
     ap.add_argument("--snapshot", help="save one swapped frame to this file and quit (for testing)")
     ap.add_argument("--voice", default="off", help="the voice to start with: off, female, male (A changes it)")
+    ap.add_argument("--echo", action="store_true", help="female / male in Changeling Echo's trained voices (E)")
     ap.add_argument("--mic", help="the microphone (part of its name; default: Windows' default)")
     ap.add_argument("--cable", default="CABLE Input", help="the virtual cable's playback side (default CABLE Input)")
     ap.add_argument("--monitor", help="also play the voice here, to hear yourself (part of a name: use headphones)")
@@ -388,7 +389,7 @@ def main():
     voice = None
     try:
         from voice import VoiceChanger
-        voice = VoiceChanger(mic=args.mic, cable=args.cable, monitor=args.monitor, preset=args.voice)
+        voice = VoiceChanger(mic=args.mic, cable=args.cable, monitor=args.monitor, preset=args.voice, echo=args.echo)
         if not voice.start():
             voice = None
         else:

@@ -26,12 +26,15 @@ The window (Changeling's look): the picture on the left; on the right the person
 and **Reload**, switches for the swap, occlusion and the virtual camera, the smooth and strength sliders,
 the voice, and **Record**.
 
+![Changeling CopyCat Realtime's window](samples/window.png)
+
 | Key | Does |
 | :--- | :--- |
 | <kbd>S</kbd> | swap on / off |
 | <kbd>O</kbd> | occlusion on / off: hands, hair, a cup in front of your face stay in front of hers |
 | <kbd>V</kbd> | virtual camera on / off |
 | <kbd>A</kbd> | voice: off, female, male |
+| <kbd>E</kbd> | Echo on / off: female and male in Changeling Echo's trained voices |
 | <kbd>C</kbd> | record / stop: the swapped picture and your voice, to `recordings/` |
 | <kbd>P</kbd> | pick another persona: a file picker in `personas/`, no restart |
 | <kbd>R</kbd> | read the persona's picture again (after replacing it) |
@@ -50,6 +53,16 @@ voice and a light one both land in the right range. It's a phase vocoder on the 
 second behind. To reach your call it needs [VB-Audio Virtual Cable](https://vb-audio.com/Cable/) (pick
 **CABLE Output** as the call's microphone); without it the voice still goes into recordings.
 
+**Echo** (the switch under the voices, <kbd>E</kbd>, or `--echo`) speaks female and male in a trained voice
+instead: [Changeling Echo](https://github.com/CursedPrograms/Changeling-Echo)'s `echo_female` and `echo_male`
+(RVC). Your words and timing, someone else's voice, rather than yours moved up or down. It runs on the graphics
+card in Echo's own environment (Echo's `echo/live.py`, a child process), a quarter second at a time: about a
+third of a second behind you, under 100 ms of work per quarter second on a 6 GB card. It takes about
+9 seconds to load the first time you pick a voice, and the phase vocoder speaks until it's ready. It needs
+Changeling Echo next to this app (as in Changeling Studio) or in `ECHO_DIR`, with its voices trained.
+Measured here: a man's voice at 158 Hz came out at 214 Hz as `echo_female`, and a woman's at 195 Hz came out
+at 118 Hz as `echo_male`.
+
 ### Recording
 
 **Record** saves what the call would see and hear: the swapped picture and your voice (changed, or your
@@ -58,7 +71,7 @@ steady 30 fps in step with the sound; ffmpeg joins them at Stop. Click the line 
 the folder.
 
 `run.bat --camera 1` (another webcam), `run.bat --source clip.mp4` (a video or picture instead of the
-webcam), `run.bat --no-virtual` (just the preview), `run.bat --voice female` (start with a voice),
+webcam), `run.bat --no-virtual` (just the preview), `run.bat --voice female --echo` (start with a voice, in Echo's),
 `run.bat --mic "Focusrite"` (pick the microphone by part of its name), `run.bat --persona test2` (skip the question: a picture in `personas/` by name, or any file), `run.bat --source me.jpg --snapshot out.png` (one
 swapped frame, to try a persona).
 
