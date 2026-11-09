@@ -1,8 +1,31 @@
+[![Twitter: @NorowaretaGemu](https://img.shields.io/badge/X-@NorowaretaGemu-blue.svg?style=flat)](https://x.com/NorowaretaGemu)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+<div align="center">
+  <a href="https://ko-fi.com/cursedentertainment">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi" style="width: 20%;"/>
+  </a>
+</div>
+
+<p align="center"><img src="https://raw.githubusercontent.com/CursedPrograms/Changeling-Studio/main/site/logo.png" alt="Changeling" width="120"></p>
+
 <p align="center"><img src="samples/persona_samples.jpg" alt="Three faces, each as the camera sees it, then swapped to the persona, then the persona picture" width="640"></p>
 
 # Changeling CopyCat Realtime
 
-*Formerly Persona Cam. Part of the Changeling family: [Changeling CopyCat](https://github.com/CursedPrograms/Changeling-CopyCat) swaps faces in photos and videos; CopyCat Realtime does it live on the webcam.*
+*Part of the Changeling family, all together in [Changeling Studio](https://github.com/CursedPrograms/Changeling-Studio):
+[CopyCat](https://github.com/CursedPrograms/Changeling-CopyCat) ·
+**CopyCat Realtime** ·
+[Tiresias](https://github.com/CursedPrograms/Changeling-Tiresias) (gender) ·
+[Chronos](https://github.com/CursedPrograms/Changeling-Chronos) (age) ·
+[Natio](https://github.com/CursedPrograms/Changeling-Natio) (where in the world) ·
+[Cosmetics](https://github.com/CursedPrograms/Changeling-Cosmetics) (makeup, hair, beards) ·
+[Echo](https://github.com/CursedPrograms/Changeling-Echo) (voices) ·
+[Tonsor](https://github.com/CursedPrograms/Changeling-Tonsor) (hairstyles) ·
+realtime: [Tiresias](https://github.com/CursedPrograms/Changeling-Tiresias-Realtime) ·
+[Chronos](https://github.com/CursedPrograms/Changeling-Chronos-Realtime) ·
+[Natio](https://github.com/CursedPrograms/Changeling-Natio-Realtime) ·
+[Cosmetics](https://github.com/CursedPrograms/Changeling-Cosmetics-Realtime).*
 
 **Website:** https://cursedprograms.github.io/Changeling-CopyCat-Realtime/
 
