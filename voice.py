@@ -217,7 +217,8 @@ class VoiceChanger:
         import sounddevice as sd
         self.sd = sd
         devices = sd.query_devices()
-        self.mic = _find(devices, mic, "input") if mic else sd.default.device[0]
+        self.phone = mic == "phone"     # the sound comes from the phone (phone.py feeds it in), not a device
+        self.mic = None if self.phone else (_find(devices, mic, "input") if mic else sd.default.device[0])
         self.out = _find(devices, cable, "output")
         self.monitor = _find(devices, monitor, "output") if monitor else None
         self.preset = preset
@@ -238,7 +239,7 @@ class VoiceChanger:
     @property
     def ready(self):
         """Something is listening: the cable, your headphones, or (with neither) a recording."""
-        return self.mic is not None and self.mic >= 0
+        return self.phone or (self.mic is not None and self.mic >= 0)
 
     @property
     def to_call(self):
@@ -256,9 +257,11 @@ class VoiceChanger:
                       for d in (self.out, self.monitor) if d is not None]
         for s in self._outs:
             s.start()
-        self._mic = self.sd.InputStream(device=self.mic, samplerate=SR, channels=1, dtype="float32",
-                                        blocksize=HOP, callback=self._heard)
-        self._mic.start()
+        if not self.phone:
+            self._mic = self.sd.InputStream(device=self.mic, samplerate=SR, channels=1, dtype="float32",
+                                            blocksize=HOP, callback=self._heard)
+            self._mic.start()
+        self._fed = np.zeros(0, np.float32)
         threading.Thread(target=self._work, daemon=True, name="voice").start()
         return True
 
@@ -296,6 +299,13 @@ class VoiceChanger:
             if s is not None:
                 s.stop()
                 s.close()
+
+    def feed(self, pcm):
+        """Sound from elsewhere (the phone): float32 mono at SR, any length; cut into the blocks the mic gives."""
+        self._fed = np.concatenate([getattr(self, "_fed", np.zeros(0, np.float32)), pcm.astype(np.float32)])
+        while len(self._fed) >= HOP:
+            block, self._fed = self._fed[:HOP], self._fed[HOP:]
+            self._heard(block[:, None], HOP, None, None)
 
     def _heard(self, data, frames, t, status):
         try:

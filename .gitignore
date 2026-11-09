@@ -8,3 +8,5 @@ models/*.part
 personas/test*
 # your recordings stay on your PC
 recordings/
+# the phone page's self-signed certificate (made on this PC, for its address)
+certs/

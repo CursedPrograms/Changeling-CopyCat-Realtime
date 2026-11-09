@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Changeling CopyCat Realtime: phone</title>
+<link rel="stylesheet" href="phone.css">
+</head>
+<body>
+<header>
+  <div class="eyebrow">Changeling</div>
+  <h1>CopyCat Realtime</h1>
+  <p class="tagline">Your phone is the camera and the microphone; the PC does the swap.</p>
+</header>
+
+<main>
+  <div class="screen">
+    <img id="swapped" alt="The swapped picture, from the PC">
+    <video id="camera" playsinline muted></video>
+    <p id="hint">Press Start, then allow the camera and the microphone.</p>
+  </div>
+
+  <div class="controls">
+    <button id="start" class="primary">Start</button>
+    <button id="flip">Flip camera</button>
+    <label class="check"><input type="checkbox" id="mic" checked> Microphone</label>
+  </div>
+  <p id="status" class="status"></p>
+</main>
+
+<footer>&copy; Cursed Entertainment 2026</footer>
+<script src="phone.js"></script>
+</body>
+</html>

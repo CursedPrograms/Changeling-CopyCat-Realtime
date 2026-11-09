@@ -53,11 +53,12 @@ def logo_image(here, size=56):
     return ctk.CTkImage(Image.open(png), size=(size, size))
 
 class Window:
-    def __init__(self, args, read, still, sw, persona, *, load_persona, pick_persona, open_virtual, voice):
+    def __init__(self, args, read, still, sw, persona, *, load_persona, pick_persona, open_virtual, voice, phone=None):
         self.args, self.read, self.still, self.sw = args, read, still, sw
         self.persona = persona
         self.load_persona, self.pick_persona, self.open_virtual = load_persona, pick_persona, open_virtual
         self.voice = voice
+        self.phone = phone
         self.recorder = Recorder(os.path.join(HERE, "recordings"))
         if voice is not None:
             voice.taps.append(self.recorder.sound)
@@ -104,6 +105,15 @@ class Window:
         ctk.CTkLabel(side, text="CopyCat Realtime", font=ctk.CTkFont(size=24, weight="bold"),
                      text_color=PINK).pack(anchor="w", padx=12)
         ctk.CTkLabel(side, text="your expressions, someone else's face", text_color="gray60").pack(anchor="w", padx=12)
+
+        if self.phone is not None:
+            self._section(side, "Phone")
+            qr = Image.fromarray(self.phone.qr(180))
+            ctk.CTkLabel(side, image=ctk.CTkImage(qr, size=(180, 180)), text="").pack(anchor="w", padx=12, pady=4)
+            ctk.CTkLabel(side, text=self.phone.url, text_color=("#c2186b", "#f29cc0")).pack(anchor="w", padx=12)
+            self.phone_note = ctk.CTkLabel(side, text="", text_color="gray55", wraplength=270, justify="left")
+            self.phone_note.pack(anchor="w", padx=12)
+            self.root.after(500, self._phone_status)
 
         self._section(side, "Persona")
         self.thumb = ctk.CTkLabel(side, text="", width=96, height=96, fg_color=("gray85", "gray17"), corner_radius=10)
@@ -236,6 +246,12 @@ class Window:
         if self.voice is not None:
             self.voice.preset = preset
 
+    def _phone_status(self):
+        self.phone_note.configure(text="Phone connected." if self.phone.connected else
+                                  "Scan it with the phone's camera (same WiFi), accept the certificate warning once, "
+                                  "then Start.")
+        self.root.after(500, self._phone_status)
+
     def set_echo(self, on):
         if self.voice is not None:
             self.voice.echo = on and self.voice.echo_dir is not None
@@ -307,6 +323,8 @@ class Window:
             self.fps = self.fps * 0.9 + 0.1 / max(now - t_last, 1e-3)
             t_last = now
             self.latest = (out, found)
+            if self.phone is not None:
+                self.phone.show(out)
             if self.still:
                 time.sleep(1 / 30)
         if self.virtual is not None:

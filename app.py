@@ -422,6 +422,9 @@ def main():
     ap.add_argument("--height", type=int, default=720)
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--no-virtual", action="store_true")
+    ap.add_argument("--phone", action="store_true", help="your phone's camera and microphone instead (run_server.bat): "
+                    "a page to open on the phone, with a QR code in the window")
+    ap.add_argument("--phone-port", type=int, default=8443, help="the phone page's port (default 8443)")
     ap.add_argument("--skin", type=int, default=0, help="0 - 100: how much of the persona's skin (tone, wrinkles, "
                     "freckles) to wear; 0 keeps your own (the Skin slider)")
     ap.add_argument("--snapshot", help="save one swapped frame to this file and quit (for testing)")
@@ -433,7 +436,13 @@ def main():
     args = ap.parse_args()
     args.persona = choose_persona(args.persona, ask=not args.snapshot)
 
-    read, still = open_source(args)
+    phone = None
+    if args.phone:
+        from phone import Phone
+        phone = Phone(args.phone_port).start()
+        read, still = phone.read, False
+    else:
+        read, still = open_source(args)
     sw = Swapper()
     sw.skin = max(0, min(args.skin, 100)) / 100
     persona = load_persona(args.persona, sw)
@@ -451,11 +460,13 @@ def main():
     voice = None
     try:
         from voice import VoiceChanger
-        voice = VoiceChanger(mic=args.mic, cable=args.cable, monitor=args.monitor, preset=args.voice, echo=args.echo)
+        voice = VoiceChanger(mic="phone" if phone else args.mic, cable=args.cable, monitor=args.monitor, preset=args.voice, echo=args.echo)
         if not voice.start():
             voice = None
         else:
             print("Voice: " + (f"{voice.preset}, to the call through the virtual cable" if voice.to_call else voice.why))
+            if phone is not None:
+                phone.voice(voice.feed)
     except Exception as e:
         print(f"Voice: off ({e})")
         voice = None
@@ -463,7 +474,7 @@ def main():
     from window import Window
     print("Opening the window and the camera ...", flush=True)
     Window(args, read, still, sw, persona, load_persona=load_persona, pick_persona=pick_persona,
-           open_virtual=open_virtual, voice=voice).run()
+           open_virtual=open_virtual, voice=voice, phone=phone).run()
     if voice is not None:
         voice.stop()
 

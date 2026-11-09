@@ -16,3 +16,7 @@ mediapipe==0.10.21
 # the window (Changeling's look) and the voice: your mic, changed, to the call and into recordings
 customtkinter==5.2.2
 sounddevice
+# the phone as camera and microphone (run_server.bat): the page server, its certificate, the QR code
+flask
+cryptography
+segno

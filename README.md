@@ -64,6 +64,21 @@ Changeling Echo next to this app (as in Changeling Studio) or in `ECHO_DIR`, wit
 Measured here: a man's voice at 158 Hz came out at 214 Hz as `echo_female`, and a woman's at 195 Hz came out
 at 118 Hz as `echo_male`.
 
+### Your phone as the camera
+
+`run_server.bat` (or `run_server.ps1`, `run_server.sh`; it's `run.bat --phone`) uses your phone's camera and
+microphone instead of a webcam, while this PC does the swap. The window shows a QR code: scan it with the phone
+(on the same WiFi), accept the certificate warning once (the page makes its own certificate, because phones only
+give a page the camera and microphone over HTTPS), and press **Start**. The phone sends its camera a picture at a
+time and gets the swapped picture back on its screen; its microphone goes through the voice changer (and Echo). Out
+to the call it's the same as a webcam: OBS Virtual Camera, the virtual cable, recordings. Tested here with a script
+playing the phone: about 12 swapped pictures a second came back over the local network.
+
+The page is on port 8443 (`--phone-port` changes it). Windows asks once whether Python may take connections on
+your network: allow it on private networks. `phone.py` is the server, `phone_page/` the page.
+
+![Phone mode: the QR code to scan](samples/phone_window.png)
+
 ### Recording
 
 **Record** saves what the call would see and hear: the swapped picture and your voice (changed, or your
