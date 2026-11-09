@@ -26,6 +26,20 @@ GITHUB = "https://github.com/CursedPrograms/Changeling-Imago-Realtime"
 KOFI = "https://ko-fi.com/cursedentertainment"
 PINK, RED = "#e0408a", "#d43c3c"
 
+BLUE, BLUE_HOVER = "#007ab7", "#005184"     # the Cursed site's blue: the important buttons, and "male"
+
+
+def gender_tint(seg):
+    """Colours a gender selector by what's picked: female pink, male blue, anything else the usual pink."""
+    def tint(value=None):
+        v = (value or seg.get() or "").lower()
+        colour = PINK if ("female" in v or "woman" in v) else BLUE if ("male" in v or v == "man") else PINK
+        seg.configure(selected_color=colour, selected_hover_color=colour)
+    old = seg.cget("command")
+    seg.configure(command=lambda v: (tint(v), old(v) if old else None))
+    tint()
+
+
 
 
 def set_logo(root, here):
@@ -157,7 +171,7 @@ class Window:
             self.root.after(500, self._voice_status)
 
         self._section(side, "Record  (C)")
-        self.rec_btn = ctk.CTkButton(side, text="●  Record", height=42, font=ctk.CTkFont(size=15, weight="bold"),
+        self.rec_btn = ctk.CTkButton(side, fg_color=BLUE, hover_color=BLUE_HOVER, text="●  Record", height=42, font=ctk.CTkFont(size=15, weight="bold"),
                                      command=self.toggle_record)
         self.rec_btn.pack(fill="x", padx=12, pady=4)
         self.rec_note = ctk.CTkLabel(side, text="Picture and voice, to recordings/", text_color="gray55",
@@ -272,7 +286,7 @@ class Window:
             self.rec_btn.configure(text="Saving ...", state="disabled")
             self.root.update_idletasks()
             path, message = self.recorder.stop()
-            self.rec_btn.configure(text="●  Record", fg_color=PINK, state="normal")
+            self.rec_btn.configure(text="●  Record", fg_color=BLUE, hover_color=BLUE_HOVER, state="normal")
             self.rec_note.configure(text=f"{message}: {os.path.basename(path)}  (click: open the folder)" if path else message)
             return
         latest = self.latest
