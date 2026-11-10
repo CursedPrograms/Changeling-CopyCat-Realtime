@@ -87,6 +87,7 @@ class Phone:
         self.ip = lan_ip()
         self.url = f"https://{self.ip}:{port}/"
         self.frame = None
+        self.size = 640                  # the longer side of the phone's pictures: the swapped ones go back as big
         self.last_seen = 0.0
         self.out_jpeg = None
         self.feed = None
@@ -107,9 +108,9 @@ class Phone:
         if not self.connected:
             return
         h, w = frame.shape[:2]
-        k = 640 / max(w, h)
+        k = min(self.size, 1280) / max(w, h)       # as big as the phone sent it (HD on the phone: up to 1280)
         small = cv2.resize(frame, (int(w * k), int(h * k)), interpolation=cv2.INTER_AREA) if k < 1 else frame
-        ok, buf = cv2.imencode(".jpg", small, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        ok, buf = cv2.imencode(".jpg", small, [cv2.IMWRITE_JPEG_QUALITY, 88 if self.size > 640 else 75])
         if ok:
             self.out_jpeg = buf.tobytes()
 
@@ -144,6 +145,7 @@ class Phone:
             if img is not None:
                 with self._lock:
                     self.frame = img
+                    self.size = max(img.shape[:2])
                 self.last_seen = time.monotonic()
             return Response(self.out_jpeg or b"", mimetype="image/jpeg")   # the last swapped picture back
 

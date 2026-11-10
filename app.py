@@ -19,6 +19,7 @@ the file and press R: she changes without a restart.
 Keys in the preview window:
     S          swap on / off (your own face, for a moment)
     O          occlusion on / off (hands, hair, a cup in front of the face stay in front of hers)
+    H          Sharper face on / off (GFPGAN redraws the face at 512 x 512: less blocky, slower)
     V          virtual camera on / off
     P          pick another persona (a file picker in personas/)
     R          read the persona's picture again (after replacing it)
@@ -49,6 +50,27 @@ SWAP_MODEL = os.path.join(HERE, "models", "inswapper_128.onnx")
 # FaceFusion's occluder (XSeg): which part of the face is really face, and which is a hand, hair or a cup
 # in front of it, so the swap leaves those alone. Optional: without it the swap paints over them.
 OCCLUDER_MODEL = os.path.join(HERE, "models", "xseg_1.onnx")
+# GFPGAN v1.4 as ONNX: the "Sharper face" switch. inswapper draws the face at 128 x 128, which looks soft and blocky
+# when the face is big in the picture; GFPGAN redraws it at 512 x 512. Optional (scripts/export_gfpgan.py makes it).
+# Models are looked for in models/ first, then in F:\AIModels\faceswap (the shared copies: nothing twice on C:).
+MODEL_DIRS = (os.path.join(HERE, "models"), r"F:\AIModels\faceswap")
+# The swap: which model draws the persona's face. inswapper (InsightFace) at 128 x 128; HyperSwap (FaceFusion) at
+# 256 x 256, twice as sharp, a little slower.
+SWAPPERS = {"inswapper 128": "inswapper_128.onnx", "HyperSwap 256": "hyperswap_1a_256.onnx"}
+# "Sharper face": which model redraws the swapped face at 512 x 512. GFPGAN smooth and clean; CodeFormer the most
+# faithful; GPEN the most detail (pores, hair).
+RESTORERS = {"GFPGAN": "gfpgan_1.4.onnx", "CodeFormer": "codeformer.onnx", "GPEN": "gpen_bfr_512.onnx"}
+# where the swap wants the eyes, nose and mouth corners in its square picture (FaceFusion's arcface_128)
+ARCFACE_128 = np.float32([[0.36167656, 0.40387734], [0.63696719, 0.40235469], [0.50019687, 0.56044219],
+                          [0.38710391, 0.72160547], [0.61507734, 0.72034453]])
+
+
+def find_model(file):
+    """The model's path, in models/ or F:\AIModels\faceswap, or None."""
+    return next((os.path.join(d, file) for d in MODEL_DIRS if os.path.exists(os.path.join(d, file))), None)
+# where GFPGAN wants the eyes, nose and mouth corners in its 512 x 512 picture (FFHQ's alignment)
+FFHQ_512 = np.float32([[0.37691676, 0.46864664], [0.62285697, 0.46912813], [0.50123859, 0.61331904],
+                       [0.39308822, 0.72541100], [0.61150205, 0.72490465]]) * 512
 # InsightFace's buffalo_l: only the two of its five models Changeling Imago Realtime uses (FaceAnalysis loads all five,
 # twice over for two of them: that was most of a 100 s start)
 BUFFALO = os.path.join(os.path.expanduser("~"), ".insightface", "models", "buffalo_l")
@@ -301,12 +323,61 @@ class Swapper:
         else:
             print("No occlusion model (models/xseg_1.onnx): hands in front of the face get painted over")
         self.occlusion_on = self.occluder is not None
+        # the models there are to pick from (the window's Swap model and Sharper face menus)
+        self.swappers = {n: find_model(f) for n, f in SWAPPERS.items() if find_model(f)}
+        self.restorers = {n: find_model(f) for n, f in RESTORERS.items() if find_model(f)}
+        self._sessions = {}
+        self.swapper_name = "inswapper 128"
+        self.hyper = None            # HyperSwap's session, when it's the swap model
+        self.sharpener = None
+        self.restorer_name = None
+        if self.restorers:
+            self.set_restorer(next(iter(self.restorers)))
+        else:
+            print("No sharpener (models/gfpgan_1.4.onnx, codeformer.onnx, gpen_bfr_512.onnx): Sharper face is off")
+        self.sharp_on = False        # the "Sharper face" switch
+        self.sharp_amount = 0.8      # how much of the redrawn face: all of it can look a little airbrushed
         self._visible, self._frames = None, 0     # the occluder looks every other frame; between, its mask stays
         self.blinks = Blinks()
         self.kps = None              # the steadied face points of the last frame
         self.smooth = 0.5
         self.look = None             # the persona's skin (Look)
         self.skin = 0.0              # how much of it: 0 your own skin, 1 hers
+
+    def _session(self, path):
+        if path not in self._sessions:
+            import onnxruntime as ort
+            print(f"Loading: {os.path.basename(path)} ...", flush=True)
+            self._sessions[path] = ort.InferenceSession(path, providers=PROVIDERS)
+        return self._sessions[path]
+
+    def set_restorer(self, name):
+        """The Sharper face model (GFPGAN, CodeFormer, GPEN): loaded the first time it's picked."""
+        if name in self.restorers:
+            self.sharpener = self._session(self.restorers[name])
+            self.restorer_name = name
+
+    def set_swapper(self, name):
+        """The swap model: inswapper 128 or HyperSwap 256."""
+        if name == "HyperSwap 256" and name in self.swappers:
+            self.hyper = self._session(self.swappers[name])
+            self.swapper_name = name
+        elif name == "inswapper 128":
+            self.swapper_name, self.hyper = name, None
+
+    def hyperswap(self, frame, face, persona_face, size=256):
+        """HyperSwap: the persona's identity onto the face, at 256 x 256. (fake, m): the new face, and the matrix from
+        the frame into its square, like inswapper's."""
+        m, _ = cv2.estimateAffinePartial2D(face.kps.astype(np.float32), ARCFACE_128 * size, method=cv2.LMEDS)
+        crop = cv2.warpAffine(frame, m, (size, size), borderMode=cv2.BORDER_REPLICATE)
+        target = ((cv2.cvtColor(crop, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0 - 0.5) / 0.5).transpose(2, 0, 1)[None]
+        source = persona_face.normed_embedding.reshape(1, -1).astype(np.float32)
+        feeds = {}
+        for i in self.hyper.get_inputs():
+            feeds[i.name] = source if len(i.shape) == 2 else target
+        y = self.hyper.run(None, feeds)[0][0]
+        fake = np.clip((y.transpose(1, 2, 0) * 0.5 + 0.5) * 255, 0, 255).astype(np.uint8)
+        return cv2.cvtColor(fake, cv2.COLOR_RGB2BGR), m
 
     def set_look(self, img, face):
         try:
@@ -343,11 +414,22 @@ class Swapper:
         face = self.biggest_face(frame)
         if face is None:
             return frame, False
-        fake, m = self.model.get(frame, face, persona_face, paste_back=False)
+        if self.hyper is not None:
+            fake, m = self.hyperswap(frame, face, persona_face)
+        else:
+            fake, m = self.model.get(frame, face, persona_face, paste_back=False)
+        m128 = m * (128.0 / fake.shape[0])                # the same square at 128: the occluder and skin work there
         if self.look is not None and self.skin > 0:
-            fake = self.look.apply(fake, self.skin)
-        visible = self.visible(frame, m) if self.occlusion_on else None
+            if fake.shape[0] == 128:
+                fake = self.look.apply(fake, self.skin)
+            else:                                         # the skin's change, worked out at 128, added at full size
+                small = cv2.resize(fake, (128, 128), interpolation=cv2.INTER_AREA)
+                change = self.look.apply(small, self.skin).astype(np.float32) - small
+                fake = np.clip(fake + cv2.resize(change, fake.shape[:2][::-1]), 0, 255).astype(np.uint8)
+        visible = self.visible(frame, m128) if self.occlusion_on else None
         out = self.paste(frame, fake, m, strength, visible)
+        if self.sharp_on and self.sharpener is not None:
+            out = self.sharpen(out, face.kps, strength, visible, m128)
         # your blinks: around the face, as your eyes close the picture fades to your own closed lids
         h, w = frame.shape[:2]
         bx0, by0, bx1, by1 = face.bbox.astype(int)
@@ -360,6 +442,42 @@ class Swapper:
                 a = own[..., None]
                 out[y0:y1, x0:x1] = (frame[y0:y1, x0:x1] * a + out[y0:y1, x0:x1] * (1 - a)).astype(np.uint8)
         return out, True
+
+    def sharpen(self, frame, kps, strength=1.0, visible=None, m=None):
+        """The swapped face redrawn sharp by GFPGAN: the face aligned to 512 x 512 as GFPGAN wants it, redrawn, and
+        put back with a soft edge (and not over a hand in front of it)."""
+        a, _ = cv2.estimateAffinePartial2D(kps.astype(np.float32), FFHQ_512, method=cv2.LMEDS)
+        if a is None:
+            return frame
+        crop = cv2.warpAffine(frame, a, (512, 512), borderMode=cv2.BORDER_REPLICATE)
+        x = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB).astype(np.float32).transpose(2, 0, 1)[None] / 127.5 - 1
+        feeds = {}
+        for i in self.sharpener.get_inputs():          # CodeFormer also takes a weight: 1 = the most faithful to you
+            feeds[i.name] = np.array(1.0, np.float64) if i.name == "weight" else x
+        y = self.sharpener.run(None, feeds)[0][0]
+        sharp = cv2.cvtColor(((np.clip(y, -1, 1) + 1) * 127.5).transpose(1, 2, 0).astype(np.uint8), cv2.COLOR_RGB2BGR)
+        # a soft oval over the face itself, in the 512 picture
+        mask = np.zeros((512, 512), np.float32)
+        cv2.ellipse(mask, (256, 280), (170, 215), 0, 0, 360, 1.0, -1)
+        mask = cv2.GaussianBlur(mask, (0, 0), 18) * self.sharp_amount * strength
+        if visible is not None and m is not None:            # the occluder's mask, from the swap's 128 crop to this one
+            to512 = a @ np.vstack([cv2.invertAffineTransform(m), [0, 0, 1]])
+            mask *= cv2.warpAffine(visible, to512, (512, 512), borderValue=0.0)
+        # back into the frame, only over the face's box
+        h, w = frame.shape[:2]
+        back = cv2.invertAffineTransform(a)
+        corners = cv2.transform(np.float32([[[0, 0], [512, 0], [0, 512], [512, 512]]]), back)[0]
+        x0, y0 = np.maximum(np.floor(corners.min(0)).astype(int), 0)
+        x1, y1 = np.minimum(np.ceil(corners.max(0)).astype(int), (w, h))
+        if x1 - x0 < 8 or y1 - y0 < 8:
+            return frame
+        back[:, 2] -= (x0, y0)
+        face = cv2.warpAffine(sharp, back, (x1 - x0, y1 - y0), flags=cv2.INTER_LINEAR, borderValue=0.0)
+        alpha = cv2.warpAffine(mask, back, (x1 - x0, y1 - y0), borderValue=0.0)[..., None]
+        out = frame.copy()
+        roi = out[y0:y1, x0:x1].astype(np.float32)
+        out[y0:y1, x0:x1] = (face.astype(np.float32) * alpha + roi * (1 - alpha)).astype(np.uint8)
+        return out
 
     def visible(self, frame, m):
         """Where the face is really face (1) and where something's in front of it (0), on the swap's own
@@ -403,6 +521,8 @@ class Swapper:
         blur = max(side // 20, 5)
         mask = cv2.GaussianBlur(mask, (2 * blur + 1, 2 * blur + 1), 0)
         alpha = mask.astype(np.float32) / 255.0 * strength
+        if visible is not None and visible.shape[0] != size:   # the occluder's mask is at 128; HyperSwap's face at 256
+            visible = cv2.resize(visible, (size, size))
         if visible is not None:                                 # hands, hair... in front: her face not over them
             alpha *= cv2.warpAffine(visible, im, (bw, bh), borderValue=0.0)
         alpha = alpha[..., None]
@@ -427,6 +547,10 @@ def main():
     ap.add_argument("--phone-port", type=int, default=8443, help="the phone page's port (default 8443)")
     ap.add_argument("--skin", type=int, default=0, help="0 - 100: how much of the persona's skin (tone, wrinkles, "
                     "freckles) to wear; 0 keeps your own (the Skin slider)")
+    ap.add_argument("--sharp", action="store_true", help="start with Sharper face on (GFPGAN redraws the swapped face "
+                    "at 512 x 512: higher quality, fewer pictures a second; the Sharper face switch)")
+    ap.add_argument("--swap-model", default="inswapper 128", help="the swap model: \"inswapper 128\" or \"HyperSwap 256\"")
+    ap.add_argument("--sharp-model", help="the Sharper face model: GFPGAN, CodeFormer or GPEN")
     ap.add_argument("--snapshot", help="save one swapped frame to this file and quit (for testing)")
     ap.add_argument("--voice", default="off", help="the voice to start with: off, female, male (A changes it)")
     ap.add_argument("--echo", action="store_true", help="female / male in Changeling Echo's trained voices (E)")
@@ -445,6 +569,10 @@ def main():
         read, still = open_source(args)
     sw = Swapper()
     sw.skin = max(0, min(args.skin, 100)) / 100
+    sw.set_swapper(args.swap_model)
+    if args.sharp_model:
+        sw.set_restorer(args.sharp_model)
+    sw.sharp_on = args.sharp and sw.sharpener is not None
     persona = load_persona(args.persona, sw)
 
     if args.snapshot:

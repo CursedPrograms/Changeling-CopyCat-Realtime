@@ -42,7 +42,7 @@ Each row above: a face as the camera sees it, the same frame through Changeling 
 1. Put the persona's face in `personas/input.jpeg` (see below; the repo comes with one).
 2. Start `run.bat` (or `.\run.ps1` in PowerShell, `./run.sh` in Git Bash or Linux). The first time it sets itself up: Python 3.11, PyTorch's CUDA libraries, InsightFace
    and the GPU ONNX runtime (about 3 GB), the swap model (`models/inswapper_128.onnx`, about 550 MB) and
-   the occlusion model (`models/xseg_1.onnx`). An NVIDIA GPU is needed for a usable frame rate.
+   the occlusion model (`models/xseg_1.onnx`). Optional too: **Sharper face**'s model, `models/gfpgan_1.4.onnx` (GFPGAN v1.4 as ONNX; also looked for in `F:\AIModels\faceswap`). Make it once from `GFPGANv1.4.pth` with `scripts/export_gfpgan.py` (run it with Changeling Imago's `psdenv`, which has gfpgan). An NVIDIA GPU is needed for a usable frame rate.
 3. A dialog asks first: **use the default input (`personas/input.jpeg`)?** Yes for her; No opens a file
    picker in `personas/` to become someone else this time.
 4. In your call, pick the camera **OBS Virtual Camera** (OBS Studio installed; it doesn't have to run).
@@ -57,6 +57,7 @@ the voice, and **Record**.
 | :--- | :--- |
 | <kbd>S</kbd> | swap on / off |
 | <kbd>O</kbd> | occlusion on / off: hands, hair, a cup in front of your face stay in front of hers |
+| <kbd>H</kbd> | **Sharper face** on / off: GFPGAN redraws the swapped face at 512 x 512 (the swap itself draws it at 128 x 128, which looks soft and blocky up close); about half the frame rate |
 | <kbd>V</kbd> | virtual camera on / off |
 | <kbd>A</kbd> | voice: off, female, male |
 | <kbd>E</kbd> | Echo on / off: female and male in Changeling Echo's trained voices |
@@ -101,6 +102,10 @@ playing the phone: about 12 swapped pictures a second came back over the local n
 
 The page is on port 8443 (`--phone-port` changes it). Windows asks once whether Python may take connections on
 your network: allow it on private networks. `phone.py` is the server, `phone_page/` the page.
+
+**HD** on the phone's page (on by default) sends and gets back pictures up to 1280 pixels at a high JPEG quality;
+off is 640 pixels (less WiFi, a little faster). The pictures can be upright or sideways: the virtual camera gets
+them fitted into its own size, with dark bars.
 
 ![Phone mode: the QR code to scan](samples/phone_window.png)
 

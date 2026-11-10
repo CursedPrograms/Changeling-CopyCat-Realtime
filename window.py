@@ -4,7 +4,7 @@ The picture on the left, the controls on the right. The camera, the swap, the vi
 recording run on their own thread, so the window never waits for the GPU; the window shows the latest
 finished frame about 60 times a second.
 
-Keys still work: S swap, O occlusion, V virtual camera, A voice, P pick a persona, R read it again,
+Keys still work: S swap, O occlusion, H sharper face, V virtual camera, A voice, P pick a persona, R read it again,
 C record / stop, Q or Esc quit.
 """
 import os
@@ -15,10 +15,15 @@ import webbrowser
 
 import customtkinter as ctk
 import cv2
+import numpy as np
 from PIL import Image, ImageTk
 
+from gallery import remember, show as show_gallery
 from recorder import Recorder
 from voice import PRESETS, SR
+
+SWAP_CHOICES = ("inswapper 128", "HyperSwap 256")
+RESTORE_CHOICES = ("GFPGAN", "CodeFormer", "GPEN")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAME = "Changeling Imago Realtime"
@@ -65,6 +70,20 @@ def logo_image(here, size=56):
     if not os.path.exists(png):
         return None
     return ctk.CTkImage(Image.open(png), size=(size, size))
+
+def fit(frame, w, h):
+    """frame in a w x h picture, as big as it fits, dark bars around it (the virtual camera keeps the size it opened
+    at; the phone's pictures can be another size, or upright)."""
+    fh, fw = frame.shape[:2]
+    if (fw, fh) == (w, h):
+        return frame
+    k = min(w / fw, h / fh)
+    nw, nh = max(int(fw * k), 1), max(int(fh * k), 1)
+    out = np.zeros((h, w, 3), np.uint8)
+    x, y = (w - nw) // 2, (h - nh) // 2
+    out[y:y + nh, x:x + nw] = cv2.resize(frame, (nw, nh), interpolation=cv2.INTER_AREA if k < 1 else cv2.INTER_LINEAR)
+    return out
+
 
 class Window:
     def __init__(self, args, read, still, sw, persona, *, load_persona, pick_persona, open_virtual, voice, phone=None):
@@ -146,6 +165,25 @@ class Window:
         if self.sw.occluder is None:
             occl.configure(state="disabled", text="Occlusion: no model")
         self.occl_sw = occl
+        sharp = self._switch(side, "Sharper face  (H)", self.sw.sharp_on, lambda v: setattr(self.sw, "sharp_on", v))
+        if self.sw.sharpener is None:
+            sharp.configure(state="disabled", text="Sharper face: no model")
+        self.sharp_sw = sharp
+        # which models: the swap, and the one Sharper face redraws with (each loads the first time it's picked)
+        self._section(side, "Models")
+        ctk.CTkLabel(side, text="Swap", text_color="gray60").pack(anchor="w", padx=12)
+        self.swap_pick = ctk.CTkSegmentedButton(side, values=list(SWAP_CHOICES), command=self.pick_swapper)
+        self.swap_pick.set(self.sw.swapper_name)
+        self.swap_pick.pack(fill="x", padx=12, pady=(2, 6))
+        if len(self.sw.swappers) < 2:
+            self.swap_pick.configure(state="disabled")
+        ctk.CTkLabel(side, text="Sharper face", text_color="gray60").pack(anchor="w", padx=12)
+        self.restore_pick = ctk.CTkSegmentedButton(side, values=list(RESTORE_CHOICES), command=self.pick_restorer)
+        if self.sw.restorer_name:
+            self.restore_pick.set(self.sw.restorer_name)
+        self.restore_pick.pack(fill="x", padx=12, pady=(2, 4))
+        if len(self.sw.restorers) < 2:
+            self.restore_pick.configure(state="disabled")
         self.virt_sw = self._switch(side, "Virtual camera  (V)", self.want_virtual, self.set_virtual)
         self.smooth = self._slider(side, "Smooth", 0, 90, 50, lambda v: setattr(self.sw, "smooth", v / 100))
         self._slider(side, "Strength", 0, 100, 100, lambda v: setattr(self, "strength", v / 100))
@@ -178,6 +216,8 @@ class Window:
                                      cursor="hand2", wraplength=270, justify="left")
         self.rec_note.pack(anchor="w", padx=12)
         self.rec_note.bind("<Button-1>", lambda e: self.open_recordings())
+        ctk.CTkButton(side, text="Gallery", fg_color="transparent", border_width=1,
+                      command=lambda: show_gallery(self.root, "Imago Realtime")).pack(fill="x", padx=12, pady=(6, 0))
 
         self.status = ctk.CTkLabel(side, text="", text_color="gray60", justify="left", wraplength=270)
         self.status.pack(anchor="w", padx=12, pady=(10, 2))
@@ -220,7 +260,7 @@ class Window:
         def flip(switch):
             if switch.cget("state") != "disabled":
                 switch.toggle()
-        keys = {"s": lambda: flip(self.swap_sw), "o": lambda: flip(self.occl_sw), "v": lambda: flip(self.virt_sw),
+        keys = {"s": lambda: flip(self.swap_sw), "o": lambda: flip(self.occl_sw), "h": lambda: flip(self.sharp_sw), "v": lambda: flip(self.virt_sw),
                 "a": self.next_voice, "e": lambda: flip(self.echo_sw), "p": self.pick, "r": self.reload, "c": self.toggle_record, "q": self.quit}
         for k, f in keys.items():
             self.root.bind(f"<KeyPress-{k}>", lambda e, f=f: f())
@@ -252,6 +292,24 @@ class Window:
 
     def reload(self):
         self.want_persona = self.args.persona
+
+    def pick_swapper(self, name):
+        if name not in self.sw.swappers:
+            self.swap_pick.set(self.sw.swapper_name)
+            self.status.configure(text=f"{name}: not in models/ or F:\\AIModels\\faceswap")
+            return
+        threading.Thread(target=self.sw.set_swapper, args=(name,), daemon=True).start()
+
+    def pick_restorer(self, name):
+        if name not in self.sw.restorers:
+            if self.sw.restorer_name:
+                self.restore_pick.set(self.sw.restorer_name)
+            self.status.configure(text=f"{name}: not in models/ or F:\\AIModels\\faceswap")
+            return
+        threading.Thread(target=self.sw.set_restorer, args=(name,), daemon=True).start()
+        if not self.sw.sharp_on and self.sharp_sw.cget("state") != "disabled":
+            self.sharp_sw.select()
+            self.sw.sharp_on = True
 
     def set_virtual(self, on):
         self.want_virtual = on
@@ -286,6 +344,8 @@ class Window:
             self.rec_btn.configure(text="Saving ...", state="disabled")
             self.root.update_idletasks()
             path, message = self.recorder.stop()
+            if path and os.path.exists(path):
+                remember(path, "Imago Realtime")
             self.rec_btn.configure(text="●  Record", fg_color=BLUE, hover_color=BLUE_HOVER, state="normal")
             self.rec_note.configure(text=f"{message}: {os.path.basename(path)}  (click: open the folder)" if path else message)
             return
@@ -311,38 +371,50 @@ class Window:
     def work(self):
         t_last = time.monotonic()
         while self.running:
-            if self.want_persona:
-                path, self.want_persona = self.want_persona, None
-                self.persona = self.load_persona(path, self.sw) or self.persona
-                self.root.after(0, self._show_persona)
-            frame = self.read()
-            if frame is None:
-                self.root.after(0, lambda: self.status.configure(text="The camera stopped giving pictures."))
-                break
-            if self.virtual is None and self.want_virtual:
-                self.virtual = self.open_virtual(frame.shape[1], frame.shape[0], self.args.fps)
-                if self.virtual is None:
-                    self.want_virtual = False
-                    self.root.after(0, lambda: (self.virt_sw.deselect(), self.virt_sw.configure(text="Virtual camera: no OBS")))
-            elif self.virtual is not None and not self.want_virtual:
-                self.virtual.close()
-                self.virtual = None
-            out, found = frame, False
-            if self.swap_on and self.persona:
-                out, found = self.sw.swap(frame, self.persona[1], self.strength)
-            if self.virtual is not None:
-                self.virtual.send(out)
-            self.recorder.frame(out)
+            try:
+                if not self.step():
+                    break
+            except Exception as e:  # noqa: BLE001 - say so and carry on with the next picture
+                import traceback
+                traceback.print_exc()
+                self.root.after(0, lambda e=e: self.status.configure(text=f"Error: {e}"))
+                time.sleep(0.2)
             now = time.monotonic()
             self.fps = self.fps * 0.9 + 0.1 / max(now - t_last, 1e-3)
             t_last = now
-            self.latest = (out, found)
-            if self.phone is not None:
-                self.phone.show(out)
-            if self.still:
-                time.sleep(1 / 30)
         if self.virtual is not None:
             self.virtual.close()
+
+    def step(self):
+        """One picture: read, swap, out to the virtual camera, the recording and the phone. False: the camera's gone."""
+        if self.want_persona:
+            path, self.want_persona = self.want_persona, None
+            self.persona = self.load_persona(path, self.sw) or self.persona
+            self.root.after(0, self._show_persona)
+        frame = self.read()
+        if frame is None:
+            self.root.after(0, lambda: self.status.configure(text="The camera stopped giving pictures."))
+            return False
+        if self.virtual is None and self.want_virtual:
+            self.virtual = self.open_virtual(frame.shape[1], frame.shape[0], self.args.fps)
+            if self.virtual is None:
+                self.want_virtual = False
+                self.root.after(0, lambda: (self.virt_sw.deselect(), self.virt_sw.configure(text="Virtual camera: no OBS")))
+        elif self.virtual is not None and not self.want_virtual:
+            self.virtual.close()
+            self.virtual = None
+        out, found = frame, False
+        if self.swap_on and self.persona:
+            out, found = self.sw.swap(frame, self.persona[1], self.strength)
+        if self.virtual is not None:
+            self.virtual.send(fit(out, self.virtual.width, self.virtual.height))
+        self.recorder.frame(out)
+        self.latest = (out, found)
+        if self.phone is not None:
+            self.phone.show(out)
+        if self.still:
+            time.sleep(1 / 30)
+        return True
 
     def show(self):
         latest = self.latest

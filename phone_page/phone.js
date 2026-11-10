@@ -3,7 +3,9 @@
 (function () {
   "use strict";
   var RATE = 24000;               // what the PC's voice changer works at
-  var WIDTH = 640;                // pictures are sent at most this wide
+  var hd = document.getElementById("hd");   // HD: bigger, clearer pictures both ways (more WiFi, a little slower)
+  function width() { return hd.checked ? 1280 : 640; }       // pictures are sent at most this wide
+  function quality() { return hd.checked ? 0.9 : 0.7; }
   var video = document.getElementById("camera");
   var swapped = document.getElementById("swapped");
   var hint = document.getElementById("hint");
@@ -20,7 +22,7 @@
   function openCamera() {
     if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
     return navigator.mediaDevices.getUserMedia({
-      video: { facingMode: facing, width: { ideal: 960 }, height: { ideal: 720 } },
+      video: { facingMode: facing, width: { ideal: hd.checked ? 1920 : 960 }, height: { ideal: hd.checked ? 1080 : 720 } },
       audio: micBox.checked ? { echoCancellation: true, noiseSuppression: true, channelCount: 1 } : false
     }).then(function (s) {
       stream = s;
@@ -35,7 +37,7 @@
   function loop() {
     if (!running) return;
     if (!video.videoWidth) { setTimeout(loop, 100); return; }
-    var k = Math.min(1, WIDTH / video.videoWidth);
+    var k = Math.min(1, width() / Math.max(video.videoWidth, video.videoHeight));
     canvas.width = Math.round(video.videoWidth * k);
     canvas.height = Math.round(video.videoHeight * k);
     var g = canvas.getContext("2d");
@@ -60,7 +62,7 @@
           loop();
         })
         .catch(function () { say("Lost the PC: is Imago Realtime still running?"); setTimeout(loop, 1000); });
-    }, "image/jpeg", 0.7);
+    }, "image/jpeg", quality());
   }
 
   // the microphone: 16-bit pieces of about a tenth of a second
@@ -116,6 +118,10 @@
 
   document.getElementById("flip").addEventListener("click", function () {
     facing = facing === "user" ? "environment" : "user";
+    if (running) { stopSound(); openCamera().then(startSound); }
+  });
+
+  hd.addEventListener("change", function () {
     if (running) { stopSound(); openCamera().then(startSound); }
   });
 
