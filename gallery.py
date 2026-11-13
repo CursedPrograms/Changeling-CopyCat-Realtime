@@ -124,7 +124,7 @@ def show_in_folder(path):
 
 
 # ---- the window
-GREY, PANEL, LINE, TEXT, MUTED, PINK, DEEP = "#1a1a1a", "#242424", "#3a3a3a", "#e6e6e6", "#9a9a9a", "#e0408a", "#c2186b"
+GREY, PANEL, LINE, TEXT, MUTED, PINK, DEEP = "#1a1a1a", "#242424", "#3a3a3a", "#e6e6e6", "#9a9a9a", "#007bb7", "#005184"
 
 
 def show(parent=None, app=None):
@@ -203,7 +203,7 @@ def show(parent=None, app=None):
         links = tk.Frame(c, bg=PANEL)
         links.pack(anchor="w", padx=8, pady=(2, 6))
         if exists:
-            folder = tk.Label(links, text="Show in folder", fg="#f29cc0", bg=PANEL, cursor="hand2", font=("Segoe UI", 8))
+            folder = tk.Label(links, text="Show in folder", fg="#34a9e3", bg=PANEL, cursor="hand2", font=("Segoe UI", 8))
             folder.pack(side="left", padx=(0, 12))
             folder.bind("<Button-1>", lambda ev, p=e["path"]: show_in_folder(p))
         drop = tk.Label(links, text="Remove from gallery", fg=MUTED, bg=PANEL, cursor="hand2", font=("Segoe UI", 8))

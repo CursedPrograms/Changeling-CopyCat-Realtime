@@ -1,12 +1,12 @@
-/* Changeling's look: the apps' dark greys and the Cursed pink. Solid colours, no gradients, no shadows. */
+/* Changeling's look: the apps' dark greys and the Atelier blue. Solid colours, no gradients, no shadows. */
 :root {
   --bg: #1a1a1a;
   --panel: #242424;
   --screen: #16161a;
   --text: #e6e6e6;
   --muted: #9a9a9a;
-  --pink: #e0408a;
-  --pink-dark: #c2186b;
+  --pink: #007bb7;
+  --pink-dark: #005184;
 }
 
 * { box-sizing: border-box; }

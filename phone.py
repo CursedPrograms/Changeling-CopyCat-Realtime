@@ -122,7 +122,7 @@ class Phone:
         import segno
         from PIL import Image
         path = os.path.join(CERTS, "qr.png")
-        segno.make(self.url, error="m").save(path, scale=8, border=2, dark="#c2186b", light="#ffffff")
+        segno.make(self.url, error="m").save(path, scale=8, border=2, dark="#005184", light="#ffffff")
         return np.array(Image.open(path).convert("RGB").resize((size, size), Image.NEAREST))
 
     def start(self):

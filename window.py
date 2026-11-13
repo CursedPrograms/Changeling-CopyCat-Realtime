@@ -1,4 +1,4 @@
-"""window.py - Changeling Imago Realtime's window, in Changeling's look (customtkinter, the Cursed pink).
+"""window.py - Changeling Imago Realtime's window, in Changeling's look (customtkinter, the Atelier blue).
 
 The picture on the left, the controls on the right. The camera, the swap, the virtual camera and the
 recording run on their own thread, so the window never waits for the GPU; the window shows the latest
@@ -29,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 NAME = "Changeling Imago Realtime"
 GITHUB = "https://github.com/CursedPrograms/Changeling-Imago-Realtime"
 KOFI = "https://ko-fi.com/cursedentertainment"
-PINK, RED = "#e0408a", "#d43c3c"
+PINK, RED = "#007bb7", "#d43c3c"
 
 BLUE, BLUE_HOVER = "#007ab7", "#005184"     # the Cursed site's blue: the important buttons, and "male"
 
@@ -143,7 +143,7 @@ class Window:
             self._section(side, "Phone")
             qr = Image.fromarray(self.phone.qr(180))
             ctk.CTkLabel(side, image=ctk.CTkImage(qr, size=(180, 180)), text="").pack(anchor="w", padx=12, pady=4)
-            ctk.CTkLabel(side, text=self.phone.url, text_color=("#c2186b", "#f29cc0")).pack(anchor="w", padx=12)
+            ctk.CTkLabel(side, text=self.phone.url, text_color=("#005184", "#34a9e3")).pack(anchor="w", padx=12)
             self.phone_note = ctk.CTkLabel(side, text="", text_color="gray55", wraplength=270, justify="left")
             self.phone_note.pack(anchor="w", padx=12)
             self.root.after(500, self._phone_status)
@@ -224,7 +224,7 @@ class Window:
         links = ctk.CTkFrame(side, fg_color="transparent")
         links.pack(fill="x", padx=12, pady=(8, 2))
         for text, url in (("GitHub", GITHUB), ("Ko-fi", KOFI)):
-            l = ctk.CTkLabel(links, text=text, text_color=("#c2186b", "#f29cc0"), cursor="hand2")
+            l = ctk.CTkLabel(links, text=text, text_color=("#005184", "#34a9e3"), cursor="hand2")
             l.pack(side="left", padx=(0, 14))
             l.bind("<Button-1>", lambda e, u=url: webbrowser.open(u))
         ctk.CTkLabel(side, text="© Cursed Entertainment 2026", text_color="gray45").pack(anchor="w", padx=12, pady=(0, 10))
